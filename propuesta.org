@@ -1,0 +1,85 @@
+
+
+
+* Axo
+  
+** Vision / Purpose
+
+
+** Main objective, category
+
+
+** Language requirements
+
+El lenguaje estará inspirado en la semantica de Haskell, pero tendrá elementos de la sintaxis inspirada de Lisp.
+
+***  Basic elements
+
+
+Todo es case sensitive
+
+
+| nombre         | descripcion                                                            | ejemplos              |
+|----------------+------------------------------------------------------------------------+-----------------------|
+| ids            | cadenas de caracteres, con restricciones:                              | `a`, `+`, `>>=` `s2`  |
+|                | - no pueden empezar con número                                         |                       |
+|                | - no pueden contener el carácter '(' ni el ')'                         |                       |
+|                | - no pueden tener espacio blanco                                       |                       |
+|                | - los ids que son Data Constructors, necesitan empezar con Upper case  |                       |
+|                | - los ids que son funciones, necesitan empezar con lower case          |                       |
+|----------------+------------------------------------------------------------------------+-----------------------|
+| enteros        | cadena de 1 o más digitos [0-9]                                        | `1`, `234`, `3556`    |
+|----------------+------------------------------------------------------------------------+-----------------------|
+| floats         | cadena de *1* o más digitos, seguido de 1 o más digitos                | `1.23`, `0.5`, `2234` |
+|----------------+------------------------------------------------------------------------+-----------------------|
+| string literal | cadena de cualquier caracter o caracter escapado, entre comilla dobles | `"a string"`,`"       |
+|----------------+------------------------------------------------------------------------+-----------------------|
+| char literal   | un solo caracter o caracter escapado, entre comillas sencillas         | `'a'`,`'\t'`          |
+|                |                                                                        |                       |
+
+
+
+*** Syntax Diagrams
+
+basica
+sexp = '(exp (' ' exp)+ ')'
+exp = sexp | atom | iexp | infixep
+atom = id | int | float | string | char
+
+extended
+expSeq = exp (' ' exp)+
+iexp = exp (' ' exp)+ (_tabwidth_ exp)+
+infixep = '{' exp exp exp '}'
+para la notación infija, se necesita que la expresion del centro, sea una funcion binaria.
+
+
+*** Semantic Characteristics
+
+- The language has semantics close to Haskell. 
+- It has a strong static type system, therefore every expression has a type.
+- All variables are immutable.
+- Functions are automatically curried, therefore it's easy to partially apply, the disadvantage is that there are no variable arity functions.
+
+
+*** special functions
+
+
+*** Data types
+
+un tipo, es un conjunto de posibles valores. 
+
+
+Están los "primitivos":
+- Enteros
+- Flotantes
+- Caracteres
+
+and Algebraic Data Types:
+- Product types
+- Union types
+
+
+** Language and OS used for development
+
+
+** Bibliography
