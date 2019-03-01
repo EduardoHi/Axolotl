@@ -410,6 +410,72 @@
             
             <li><a href="#Literal" title="Literal">Literal</a></li>
             </ul>
+         </p><br><p style="font-size: 14px; font-weight:bold"><a name="Identifier">Identifier:</a></p><img border="0" src="diagram/Identifier.png" height="81" width="161" usemap="#Identifier.map"><map name="Identifier.map"><area shape="rect" coords="49,1,103,33" href="#VarId" title="VarId"><area shape="rect" coords="49,45,111,77" href="#TypeId" title="TypeId"></map><p>
+         
+         <div class="ebnf"><code>
+               
+               <div><a href="#Identifier" title="Identifier" shape="rect">Identifier</a></div>
+               
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::= <a href="#VarId" title="VarId" shape="rect">VarId</a></div>
+               
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a href="#TypeId" title="TypeId" shape="rect">TypeId</a></div></code></div>
+         </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#Atom" title="Atom">Atom</a></li>
+            </ul>
+         </p><br><p style="font-size: 14px; font-weight:bold"><a name="VarId">VarId:</a></p><img border="0" src="diagram/VarId.png" height="71" width="651"><p>
+         
+         <div class="ebnf"><code>
+               
+               <div><a href="#VarId" title="VarId" shape="rect">VarId</a>&nbsp;&nbsp;&nbsp;&nbsp;::= 'Any lowercase Unicode character' ( 'Any Unicode character' - <a href="#ReservedChars" title="ReservedChars" shape="rect">ReservedChars</a> )*</div></code></div>
+         </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#Identifier" title="Identifier">Identifier</a></li>
+            </ul>
+         </p><br><p style="font-size: 14px; font-weight:bold"><a name="TypeId">TypeId:</a></p><img border="0" src="diagram/TypeId.png" height="71" width="651"><p>
+         
+         <div class="ebnf"><code>
+               
+               <div><a href="#TypeId" title="TypeId" shape="rect">TypeId</a>&nbsp;&nbsp;&nbsp;::= 'Any uppercase Unicode character' ( 'Any Unicode character' - <a href="#ReservedChars" title="ReservedChars" shape="rect">ReservedChars</a> )*</div></code></div>
+         </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#Identifier" title="Identifier">Identifier</a></li>
+            </ul>
+         </p><br><p style="font-size: 14px; font-weight:bold"><a name="ReservedChars">ReservedChars:</a></p><img border="0" src="diagram/ReservedChars.png" height="169" width="127"><p>
+         
+         <div class="ebnf"><code>
+               
+               <div><a href="#ReservedChars" title="ReservedChars" shape="rect">ReservedChars</a></div>
+               
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::= '('</div>
+               
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ')'</div>
+               
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| '{'</div>
+               
+               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| '}'</div></code></div>
+         </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#TypeId" title="TypeId">TypeId</a></li>
+            
+            <li><a href="#VarId" title="VarId">VarId</a></li>
+            </ul>
          </p><br><hr>
       
       <p>
