@@ -1,0 +1,12 @@
+
+
+
+(define (append Nil ys) ys) :: {List a -> List a -> List a}
+(define (append {x : xs} ys)
+     {x : (append ys xs)})
+
+
+(define (++ Nil ys)
+
+(infixr ++)
+(define ++ append)

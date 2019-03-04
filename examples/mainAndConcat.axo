@@ -1,0 +1,9 @@
+
+
+
+define (concatHello str)
+  {"hello" ++ str}
+
+define main
+  let (contents (readLn))
+      (write (concatHello contents))
