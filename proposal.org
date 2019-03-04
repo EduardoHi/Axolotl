@@ -42,6 +42,38 @@ Tokens:
 
 *** Syntax Diagrams
 
+Grammar:
+
+Program ::= SExp+
+SExp ::= '(' ExpSeq ')'
+ExpSeq ::= Exp ("space" Exp)+
+Exp ::= (SExp | Atom | IExp | InfixExp)
+Atom ::= (Identifier | Literal)
+Literal ::= (Int | Float | String | Char)
+IExp ::= ExpSeq "newline" ("<indent>" ExpSeq "newline")+
+InfixExp ::= '{' Exp "space" Exp "space" Exp '}'
+CommentSingleLine ::= '-' '-'
+CommentMultiLine ::= "--(" ".*" "--)"
+
+Lexems: 
+
+digit ::= [0-9]w
+letter ::= [a-zA-Z]
+decimal ::= [0-9]+
+Int ::= decimal
+Float ::= decimal "." decimal
+UniChar ::= "Any Unicod ‘=0-e character"
+LowerUni ::= "Any lowercase Unicode character"
+UpperUni ::= "Any uppercase Unicode character"
+Char ::= "'" UniChar "'"
+String ::= '"' UniChar+ '"'
+Identifier ::= ( VarId | TypeId )
+VarId ::= LowerUni (UniChar - ReservedChars)*
+TypeId ::= UpperUni (UniChar - ReservedChars)*
+ReservedChars ::= ('(' | ')' | '{' | '}') | ' ' | 'whitespace'
+ValidSymbol ::=  UniChar - ReservedChars
+NotDoubleQuote ::= UniChar - ' "" '
+
 
 *** Semantic Characteristics
 
@@ -65,6 +97,7 @@ It is important to note that Axo does not differentiate between functions and op
 **** Looping
 
 To write something that can be executed multiple times, one should write recursive function:
+
 ```
 define (loop x)
     if {x == 0}
@@ -77,7 +110,7 @@ define (fibonnaci n)
     cond ({n == 0} 0)
     	 ({n == 1} 0)
 	 (else (fibonnaci {n - 1}))
-```	 
+``` 
 
 **** On Folds
 
@@ -85,6 +118,7 @@ From a functional programming perspective, folds are called catamorphisms, this 
 Therefore, if we can add folds to our language, we can express this loops.
 
 fold right associative:
+
 ```
 define (foldr f end xs)
     if (null? xs) 
@@ -93,6 +127,7 @@ define (foldr f end xs)
 ```
 
 fold left associative:
+
 ```
 define (foldl f a xs)
     if (null? xs) 
@@ -222,22 +257,29 @@ The primitive types are: Integer, Float, Character.
 **** On Types
 
 A sum type is the union different constructors for the same type, for example:
-`(data Bool {True | False})`
-
+```
+(data Bool {True | False})
+```
 On the contrary, product types can be understood as a tuple of any two types (their cartesian product), the types can be different, for example:
 `(data Point (Pt Int Int))`
 
 Product Types are like having some "type arguments" to a data constructor, while sum types are different constructors.
 
 an example of combining both of these types:
-`(data (Node a))`
-`(data Tree {(Node (Tree a) (Tree a)) | (Leaf a)})`
+
+```
+(data (Node a))
+(data Tree {(Node (Tree a) (Tree a)) | (Leaf a)})
+```
+
 
 In this case, the Tree can be either a Tree with two branches, or an empty Tree. This case is also a good example of a Recursive Type.
 
 Written in infix notation:
 
-`(data Tree {{(Tree a) Node (Tree a)} | (Leaf a)})`
+```
+(data Tree {{(Tree a) Node (Tree a)} | (Leaf a)})
+```
   
 
 ** Language and OS used for development
@@ -245,6 +287,12 @@ Axo is written in Haskell, and developed on MacOS and Debian linux.
 
 ** Bibliography
 
+https://www.haskell.org
+https://www.haskell.org/tutorial/goodies.html
+https://docs.racket-lang.org/hackett/index.html
+http://tunes.org/overview.html
+https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours/Towards_a_Standard_Library
+http://dev.stephendiehl.com/fun/006_hindley_milner.html#types
 
 ** Features we would like to have  
 

@@ -8,7 +8,6 @@ Atom ::= (Identifier | Literal)
 Literal ::= (Int | Float | String | Char)
 IExp ::= ExpSeq "newline" ("<indent>" ExpSeq "newline")+
 InfixExp ::= '{' Exp "space" Exp "space" Exp '}'
-
 CommentSingleLine ::= '-' '-'
 CommentMultiLine ::= "--(" ".*" "--)"
 
@@ -28,6 +27,8 @@ Identifier ::= ( VarId | TypeId )
 VarId ::= LowerUni (UniChar - ReservedChars)*
 TypeId ::= UpperUni (UniChar - ReservedChars)*
 ReservedChars ::= ('(' | ')' | '{' | '}') | ' ' | 'whitespace'
+ValidSymbol ::=  UniChar - ReservedChars
+NotDoubleQuote ::= UniChar - ' "" '
 
 Semantics:
 
