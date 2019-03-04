@@ -8,7 +8,6 @@ import Control.Applicative hiding (many, some)
 
 import Data.Void
 import Numeric
-import Data.Text hiding (empty)
 import Text.Megaparsec hiding (ParseError)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Debug

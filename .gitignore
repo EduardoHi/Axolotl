@@ -1,5 +1,14 @@
 
 
+# emacs stuff
+
 *~
 \#*\#
 .\#*
+
+
+# stack stuff
+
+.stack-work/*
+
+notes/*
