@@ -1,0 +1,126 @@
+Grammar:
+
+Program ::= SExp+
+SExp ::= '(' ExpSeq ')'
+ExpSeq ::= Exp ("space" Exp)+
+Exp ::= (SExp | Atom | IExp | InfixExp)
+Atom ::= (Identifier | Literal)
+Literal ::= (Int | Float | String | Char)
+IExp ::= ExpSeq "newline" ("<indent>" ExpSeq "newline")+
+InfixExp ::= '{' Exp "space" Exp "space" Exp '}'
+
+CommentSingleLine ::= '-' '-'
+CommentMultiLine ::= "--(" ".*" "--)"
+
+Lexems: 
+
+digit ::= [0-9]w
+letter ::= [a-zA-Z]
+decimal ::= [0-9]+
+Int ::= decimal
+Float ::= decimal "." decimal
+UniChar ::= "Any Unicod ‘=0-e character"
+LowerUni ::= "Any lowercase Unicode character"
+UpperUni ::= "Any uppercase Unicode character"
+Char ::= "'" UniChar "'"
+String ::= '"' UniChar+ '"'
+Identifier ::= ( VarId | TypeId )
+VarId ::= LowerUni (UniChar - ReservedChars)*
+TypeId ::= UpperUni (UniChar - ReservedChars)*
+ReservedChars ::= ('(' | ')' | '{' | '}') | ' ' | 'whitespace'
+
+Semantics:
+
+Our language is divided into two fields: values and types. Values are data whereas types are sets of values. 
+
+Values and expressions
+
+The field of values include primitives and user defined. Primitives like a number, a character or a function, and user defined like a tree. These are all first class.
+Expressions are a combination of values by the means of function application. For example `(+ 2 3)` or the function `(\ x -> (* x x))`.
+There is a very special value: undefined. When undefined is evaluated, the program crashes. Undefined allows us to define partial functions (https://en.wikipedia.org/wiki/Partial_function).
+Similarly there is a very special function: error. This function receives a String s and returns undefined, which will crash the program with the error message s.
+
+It is important to note that Axo does not differentiate between functions and operators, because the simplicity of the syntax allows an identifier to be composed of only symbols.
+
+
+Type System
+
+The field of types include type values and type variables. Type values are monomorphic where as type variables are polymorphic. Neither of these are first class.
+A type value, or just called “type”, can be understood as a set of possible values. Type variables can be understood as a set of any type. We can view type variables as generics in other languages.
+Type values include Int or Int -> Int. Polymorphic types include the function head which type is List a -> a. Therefore this functions is defined forAll a types.
+
+Possible extensions for the type system are type classes, which are a constraint over a polymorphic type, that forces a type to be an instance of that class. This means that it implements a specific associated function.
+We can think of classes as interfaces in other languages. Examples include: Num, Show, Read, Ord and Eq.
+
+On Types
+
+A sum type is the union different constructors for the same type, for example:
+`(data Bool {True | False})`
+
+On the contrary, product types can be understood as a tuple of any two types (their cartesian product), the types can be different, for example:
+`(data Point (Pt Int Int))`
+
+Product Types are like having some "type arguments" to a data constructor, while sum types are different constructors.
+
+an example of combining both of these types:
+`(data (Node a))`
+`(data Tree {(Node (Tree a) (Tree a)) | (Leaf a)})`
+
+In this case, the Tree can be either a Tree with two branches, or an empty Tree. This case is also a good example of a Recursive Type.
+
+Written in infix notation:
+
+`(data Tree {{(Tree a) Node (Tree a)} | (Leaf a)})`
+
+
+
+On Cycles
+
+To write something that can be executed multiple times, one should write recursive function:
+```
+define (loop x)
+    if {x == 0}
+       0
+       (loop {x - 1})
+```
+
+```
+define (fibonnaci n)
+    cond ({n == 0} 0)
+    	 ({n == 1} 0)
+	 (else (fibonnaci {n - 1}))
+```	 
+
+*** On Folds, Unfolds, cata-, ana- and hylomorphisms
+
+
+
+
+Special Functions
+
+IO: read, write, display, readLn, writeLn, displayLn, readChar, writeChar, displayChar.
+Assignments: let, define.
+Conditions: if, conditional and, conditional or, cond, case.
+
+
+Math Expressions
+
+For integers:
+	`+` , `-` , `*` , `/ ` , `div` , `mod` , `sqrt`
+For floats:
+	`+.` , `-.` , `*.` , `/. `sqrt` , `log` , `exp`
+Logical:
+	`&&` , `||` , `not` , `==`
+
+
+Modules
+
+In Axo, there will be two scopes: the scope of a module and the scope of a function.
+There must be a one-to-one correspondence modules and files.
+In a module you are able to import other modules and export functions and types.
+
+The parameters of a function live only inside the function’s body.
+Strictly speaking, you cannot declare new variables inside of a function’s body but if you want to bind a value to a variable, you can use the form `let` that inside is a function.
+
+`let` receives a list of bindings and an expression where the bindings are used.
+

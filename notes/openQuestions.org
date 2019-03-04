@@ -1,0 +1,35 @@
+
+
+* Open Questions
+
+** What is the signature (and how to implement) quote?
+
+** How to write lists (the data definition, a list literal, etc. ?
+
+(data List (forall a {(Cons a) | Nil}))
+(| (Cons a) Nil)
+(define : Cons)
+
+
+(Cons 1 (Cons 2 (Cons 3 Nil)))
+
+{1 : 2 : 3 : Nil}
+
+** Writing the append function
+
+(define (append Nil ys) ys) :: {List a -> List a -> List a}
+(define (append {x : xs} ys)
+     {x : (append ys xs)})
+
+
+(define (++ Nil ys)
+
+(infixr ++)
+(define ++ append)
+
+
+** What is the grammar of define?
+
+- `define` =  (define (<name> <args>) [:: <type annotation>] <body>)
+              (define <var> [:: <type annotation] <body>)
+
