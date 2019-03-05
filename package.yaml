@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.7 && < 5
 - megaparsec
 - mtl
+- hspec
+- hspec-megaparsec
 
 library:
   source-dirs: src
@@ -46,5 +48,6 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -main-is Spec
     dependencies:
     - axolotl

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76aee668f111cbf9bab96c93522c716535d2c9276b5295633000aea5c42082c3
+-- hash: 8df67f050c47ad4aca79bcc309f024f88c1f47a12448c1fb948766b65ab9d79a
 
 name:           axolotl
 version:        0.1.0.0
@@ -35,6 +35,8 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , hspec
+    , hspec-megaparsec
     , megaparsec
     , mtl
   default-language: Haskell2010
@@ -49,6 +51,8 @@ executable axolotl-exe
   build-depends:
       axolotl
     , base >=4.7 && <5
+    , hspec
+    , hspec-megaparsec
     , megaparsec
     , mtl
   default-language: Haskell2010
@@ -57,13 +61,16 @@ test-suite axolotl-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      LexerSpec
       Paths_axolotl
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -main-is Spec
   build-depends:
       axolotl
     , base >=4.7 && <5
+    , hspec
+    , hspec-megaparsec
     , megaparsec
     , mtl
   default-language: Haskell2010
