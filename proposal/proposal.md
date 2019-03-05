@@ -1,7 +1,10 @@
-# Axo
+
+# Axolotl
+
+> Hubo un tiempo en que yo pensaba mucho en los axolotl. Iba a verlos al acuario del Jardín des Plantes y me quedaba horas mirándolos, observando su inmovilidad, sus oscuros movimientos. Ahora soy un axolotl. _Julio Cortázar_
+
 
 ## Vision / Purpose
-
 
 Axo is how we imagine Haskell as a Lisp. While Haskell has a "clean syntax" it is full syntactic sugar that makes it harder to reason/learn about, also, this makes source-code transformations not accesible to most programmers. Haskell is already good at meta-programming, with type classes, template haskell, etc. But it lacks some of the power that macros can offer. Therefore, we propose a new programming language with Haskell semantics, but with Lisp syntax, plus some syntax features that we think are convenient for programming haskell style.
 
@@ -32,138 +35,60 @@ Tokens:
 
 Grammar:
 
+\includegraphics{diagrams/Program.png}
+![Program](diagrams/Program.png)
 
-Program
+![SExp ](diagrams/SExp.png)
 
-![Program ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Program.png)
+![ExpSeq ](diagrams/ExpSeq.png)
 
+![Exp ](diagrams/Exp.png)
 
-SExp 
+![Atom ](diagrams/Atom.png)
 
-![SExp ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/SExp.png)
+![Literal ](diagrams/Literal.png)
 
+![IExp ](diagrams/IExp.png)
 
-ExpSeq 
+![InfixExp ](diagrams/InfixExp.png)
 
-![ExpSeq ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/ExpSeq.png)
+![CommentSingleLine ](diagrams/CommentSingleLine.png)
 
+![CommentMultiLine ](diagrams/CommentMultiLine.png)
 
-Exp 
+Lexems:
 
-![Exp ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Exp.png)
+![digit ](diagrams/digit.png)
 
+![letter ](diagrams/letter.png)
 
-Atom
+![decimal ](diagrams/decimal.png)
 
-![Atom ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Atom.png)
+![Int ](diagrams/Int.png)
 
+![Float ](diagrams/Float.png)
 
-Literal 
+![UniChar ](diagrams/UniChar.png)
 
-![Literal ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Literal.png)
+![LowerUni ](diagrams/LowerUni.png)
 
+![UpperUni ](diagrams/UpperUni.png)
 
-IExp 
+![Char ](diagrams/Char.png)
 
-![IExp ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/IExp.png)
+![String ](diagrams/String.png)
 
+![Identifier ](diagrams/Identifier.png)
 
-InfixExp
+![VarId ](diagrams/VarId.png)
 
-![InfixExp ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/InfixExp.png)
+![TypeId ](diagrams/TypeId.png)
 
+![ReservedChars ](diagrams/ReservedChars.png)
 
-CommentSingleLine 
+![ValidSymbol ](diagrams/ValidSymbol.png)
 
-![CommentSingleLine ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/CommentSingleLine.png)
-
-
-CommentMultiLine
-
-![CommentMultiLine ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/CommentMultiLine.png)
-
-
-Lexems: 
-
-
-digit
-
-![digit ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/digit.png)
-
-
-letter
-
-![letter ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/letter.png)
-
-
-decimal
-
-![decimal ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/decimal.png)
-
-
-Int 
-
-![Int ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Int.png)
-
-
-Float
-
-![Float ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Float.png)
-
-
-UniChar
-
-![UniChar ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/UniChar.png)
-
-
-LowerUni
-
-![LowerUni ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/LowerUni.png)
-
-
-UpperUni
-
-![UpperUni ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/UpperUni.png)
-
-
-Char
-
-![Char ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Char.png)
-
-
-String
-
-![String ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/String.png)
-
-
-Identifier
-
-![Identifier ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/Identifier.png)
-
-
-VarId
-
-![VarId ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/VarId.png)
-
-
-TypeId
-
-![TypeId ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/TypeId.png)
-
-
-ReservedChars
-
-![ReservedChars ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/ReservedChars.png)
-
-
-ValidSymbol
-
-![ValidSymbol ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/ValidSymbol.png)
-
-
-NotDoubleQuote
-
-![NotDoubleQuote ](https://github.com/EduardoHi/Axolotl/blob/master/Syntax%20Diagrams/diagram/NotDoubleQuote.png)
+![NotDoubleQuote ](diagrams/NotDoubleQuote.png)
 
 ### Semantic Characteristics
 
