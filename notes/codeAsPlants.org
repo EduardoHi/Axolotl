@@ -1,0 +1,111 @@
+
+
+* Garden Lang
+
+"Software as gardening, not architecture"
+
+** inspiration:
+ 
+#+BEGIN_QUOTE
+Oblique strategy, "gardening, not architecture"
+#+END_QUOTE
+the big metaphor (axis):
+
+#+BEGIN_QUOTE
+code as plants, a living thing, a growing an evolving entity.
+#+END_QUOTE
+
+** concepts:
+- growing
+- evolving
+- seed
+- plants
+- trees
+- forests
+- mantainance
+- tools
+
+** elements:
+- types
+- purity
+- functional
+- macros
+- partial application
+- un/currying
+- _composition_ and identities
+    
+** analogies:
+    modules -> gardens
+    expressions -> plants
+
+
+** ideas:
+
+*** tools:
+- massive modifications of code. not text-based, but higher on the abstraction scale, AST-based.
+- signature: AST -> 'AST
+**** examples: 
+	- "add parameter x to function f",
+	- "rename variable v to w",
+	- "unexport all functions from this module, except g",
+	- "remove all function calls for h",
+	- "replace function call of f, to h, and group arg a,b in a tuple"
+	- "declare a new type called n, based on the return type of this function"
+	- "add the declaration of the infered type signature to this function"
+	- "change this type to a Maybe"
+	- "declare a new partially applied function to all this repeated function applications"
+        - "expression extractor" from a function, grab repeated expressions, and put them in a let expression
+        - "function extractor" from code, grab almost-repeated expressions (that is, expressions that can be parametrized) and put them in a function
+        - "botanist" a big taxonomy of common or shared expressions. Gives suggestions of expressions that are equivalent to another function
+        - "upgrader" official upgrades that migrate older versions to newer versions (as an example, probably something inspired in adding async/await to js)
+        - "suggest use of a record instead of a map if it's not dynamically updated"
+        - "topological sort of dependency of functions in a module (file)"
+        - "warning unused imported modules" even better: "opening, or pruning the imports of a module"
+- high composability of tools is a design goal.
+- Although normally it can function as "one shot" scripts, building a garden of a bit generic functions would be nice, then the one shot scripts are easier and simpler to write.
+*** pruning:
+- deleting code or simplifying it, a special case of modification.
+*** formating:
+- ast aware formatting
+*** testing:
+        Good testing framework, memory and time. A keystone to make better 
+        compiler decisions. no unit vs. integration tests. just, different working units,
+        example: program, function, module, expresion.
+        multiple testing and statistics. Good to make comparisons with (again, with 
+        the units of program, function, etc.)
+*** evolution:
+        defining good operations on code, makes it ideal for making automatic programs,
+        heuristic algorithms mutating code through this operations. 
+        tools + tests makes a good combination for searching and fitness.
+*** cooperation:
+    If the machine 
+    Imagine a tool that takes an error message from the log, and suggests a change
+    to a piece of code. Now this is not totally automatic, but isn't manual either.
+    It's a symbiosis between the tools and the humans.
+    sequence of events:
+		"error of file handling" -> "suggest an exception handling" -> "make the change"
+	    now imagine that after that, a lot of places have a similar expression.
+	    Then it can be factored out, to a single function. Probably, the most difficult part
+	    of this new function is it's name (remember, code is written for other humans to read,
+	    then for computers to execute). Therefore the naming should be handled by the programmer.
+*** syntax:
+        lisp-like, but with an extra thing of indentation:
+        (define (factorial n)
+            (if (<= n 1)
+                1
+                (* n (factorial (- n 1)))))
+        is translated to:
+        define (factorial n)
+            if (<= n 1)
+               1
+               (* n (factorial (- n 1)))
+        My idea is that every block of indentation is like adding a parenthesis at the
+        beggining of the first line, and one at the end of the last indented line.
+	also infix notation, for any binary function, using brackets
+
+*** components:
+- parser: text -> AST
+- prettier: AST -> text
+- compiler: AST -> machine code
+- formatter: text -> text
+

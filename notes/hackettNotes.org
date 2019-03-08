@@ -1,0 +1,99 @@
+
+
+* Hacket
+
+** What hacket supports right now:
+*** Bidirectional type inference
+  - When an expression is checked against a specified type, the type checking starts
+     with the whole expression and then proceeds into each part of the expression.
+     When type checking an expression in this mode, no type is returned.
+  - When there is no specified type, the type checking is performed in the other direction. 
+     Types are propagated from the sub expressions outward.
+
+*** Algebraic datatypes (ADTs)
+   composite types formed by combining other types, two common classes:
+  - product types, (tuples and records)
+  - sum types, (tagged or disjoint unions or variant types)
+  - enumerated types are a special case of sum types, where the constructors take no arguments.
+
+*** Pattern matching
+ general tool to process data based on its structure,
+ - primitive patterns: values and variables
+ - tree patterns: combination of primitive patterns, with constructors
+
+*** Exhaustiveness checking
+ - in pattern matching, when all the cases of the ADT are covered
+
+*** Typeclasses (including multi-parameter typeclasses) (https://en.wikipedia.org/wiki/Type_class)
+ - a construct that support ad hoc polymorphism, that is, adding constraints to type variables in parametrically polymorphic types. Such constraint involes a type class T, and a type variable a, and means that a can only be instatiated to members that support operations associated with T.
+ - In my own words: type classes are generics, but with a constraint on functions that need to be nspecified for that argument.
+
+*** Higher-kinded types
+ - * kind of every type that can be a value.
+ - * -> * is the kind of a unary type constructor (it takes one type as param) e.g. Array, Set, BinaryTree
+ - * -> * -> * is the kind of binary type constructor, e.g. Map<number, string>
+
+*** Higher-rank polymorphism
+
+*** Type-aware/type-directed macros
+ - This is the true innovation of Hackett (might need to rewatch the strange loop talk: https://www.youtube.com/watch?v=5QQdI3P7MdY)
+
+*** Laziness
+ - expressions are not evaluated when they are bound to variables, but their evaluation is deferred until their results are needed by other computations.
+
+*** Syntax for infix operators (https://lexi-lambda.github.io/blog/2017/08/12/user-programmable-infix-operators-in-racket/)
+ - another innovation of Hackett, {1 + 2} => (+ 1 2)
+ - {5 - 1 - 2} => (- (- 5 1) 2)
+ - {5 :: 1 :: nil} => (:: 5 (:: 1 nil))
+ - it has associativity (left or right) but not precedence
+
+*** Scoped type variables
+ - some types are local to the scope in which they are defined
+
+
+
+** Appendix:
+- parametric polymorphism is also known as generics.
+- ad hoc polymorphism is also known as function/operator overloading.
+- kinds are type constructors, "type of a type"
+- Higher-rank and Higher-kind types are different ! (https://www.stephanboyer.com/post/115/higher-rank-and-higher-kinded-types)
+- functions from values to types are called "dependent types"
+- higher-rank types is (System F), higher-kinded types is (System λw)
+
+
+
+
+** a metaprogrammable Haskell, a Strange Loop talk
+
+*** Macros
+- syntactic abstractions
+- Macros give us better DSLs
+- Macros help eliminate boilerplate
+
+*** Haskell is good at metaprogramming already
+- examples: megaparsec, servant
+- because of typeclasses: overloading functions, and values
+- the evaluation of programs depends on types
+  - example of empty
+- what's happening is that Haskell is using a type-directed translation of the program
+- Typeclases are compile-time functions from types to expressions.
+- expressions -> types (type inference)
+- types -> expressions (typeclasses)
+- code generation !
+
+*** Macro metaprogramming vs. typeclass metaprogramming
+  - macros are good at local code transformations
+    - can provide custom syntax
+  - typeclasses permit global code transformations.
+    - tethered to the syntax of the host language.
+  - we already have: macros : AST -> AST
+  - can we have:     macros : (AST, Type) -> AST ?
+  - compiler: Parse -> Compile
+  - compiler + types:
+    - Parse -> Typecheck -> Compile
+  - compiler + macros:
+    - Parse -> Expand -> Compile
+  - naïve compiler + types + macros:
+    - Parse -> Expand -> Typecheck -> Compile
+  - compiler + types + type-aware macros:
+    - parse -> Expand <-> Typecheck -> Compile   (Read Type Systems as Macros)

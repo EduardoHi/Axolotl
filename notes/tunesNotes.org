@@ -1,0 +1,311 @@
+
+
+
+* Tunes
+  Tomaré de estas lecturas solo lo que me concierne en el diseño de un lenguaje de programación
+
+** What is Tunes
+
+http://tunes.org/overview.html
+
+*** Technology
+
+**** favorite high-level technique: *Reflection*
+
+**** *Security* can be enforced with formal proof systems
+
+**** *Unification*?? the term that points how all computer abstractions are equal
+
+**** *Orthogonal Persistence* the unification of temporal and permament storage. variables vs. files vs. databases.
+
+**** *User Interfaces* objective is to ease our interactions with machines.
+every user of a computer is a programmer... 
+
+**** Other Techniques: 
+- Garbage Collection
+- Self-extensible syntax
+- Higher-order functions (first class functions)
+- 
+
+
+** HLL Principles
+
+*** Founding Principles
+
+**** Genericity
+- All features must be included in their fullest genericity.
+- No arbitrary restrictions to syntax or semantics
+- all uses of a feature must be independent of the ability to use another one, when they are theoretically orthogonal.
+- Genericity is the expression of computer freedom
+- it gives birth dually to
+    - Uniformity and Orthogonality
+    - Abstraction and Reflection
+    - Hardware Independence and Hardware Access.
+
+**** Precision
+- ability of users to specify precisely what they want (no under or over specification)
+
+**** Uniformity
+- a unified way to manipulate computer abstractions.
+- All computer abstractions are made equal in the same whole system.
+- whether object, function, term, pattern, ...
+- code chunks, functions, classes, symbols, attributes, are all objects,
+making higher-order and reflective expression much more straightforward.
+- main advantage: Simplest possible semantics for the system's parts.
+
+**** Consistency and Orthogonality
+|----------------------------------------------------------------------------------+------------------------------------------------------------------|
+| Consistency                                                                      | Orthogonality                                                    |
+|----------------------------------------------------------------------------------+------------------------------------------------------------------|
+| When modifying an aspect of an object, all other aspects are updated accordingly | Independent aspects of an object can be dealt with independently |
+|----------------------------------------------------------------------------------+------------------------------------------------------------------|
+- there is a duality, one can express all of what one wants at the same time(consistency),
+but not forced to express more than it at that time(orthogonality)
+
+*** Basic Principles
+
+**** Dynamism 
+- computing systems evolve, learn and adapt, iteract with the human world. therefore
+- new objects of any kind may appear or become obsolete at any time.
+
+**** Higher-Order
+- To abstract any subterm in any term of any order, to obtain a function of a higher-order.
+- examples: Varaibles, integers, types, function params, return values, all can be on any kind and any type.
+
+**** Purity
+- pure code (with no side-efeect) and read-only data.
+- purity of the semantics not depending on peculiarities of today's computers.
+- purity gives cleaner semantics, and more efficient implementations of distribution, sharing, parallelization.
+
+**** Lazy evaluation
+- Lazy Evaluation only as need, because:
+  - it allows much things that strict evaluation forbids.
+  - simplifies a program's structure.
+
+*** Extensibility
+Extensibility is the combination of modularity, dynamism, and being higher-order
+
+**** Modularity
+- Objects come in replaceable, upgradable modules.
+- Modules are uniquely identified across all the computing world, come with their specification.
+
+**** Quotienting
+- the principle according to which objects are to be considered "up to isomorphism".
+- able to specify what they want without specifying more, so they can express exactly what they need,
+and let it be optimized later, according to the need that arise from a representation.
+- some way to add _quotient structures_
+
+**** Reflection
+- The language can talk about itself.
+- manipulate code at any level:
+  - source code
+  - Intermediate Representations
+  - executable format
+- the language provides (direct or indirect) uniform access to the internal representation of objects,
+source code is merely an external representation.
+- allow easy meta-programming, the compiler is it's own preprocessor, the language is it's own macro-command language.
+- *Reflection* is a generalization of higher-order expressiveness, 
+not only the universe is layered by abstractions, but it has standard embeddings into itself.
+
+**** Meta-programming :: http://cliki.tunes.org/Metaprogramming
+- the term for the art of developing methods and programs to read, manipulate and/or write other programs.
+- when what is developed are programs that can deal with themselves, we talk about reflective programming.
+
+**** Security
+- objects come with full specification, so system security is never endangered.
+- it's better to have no computer, than a computer you cannot trust.
+
+**** Parallelizability
+- Modules are executed in parallel, scheduled by the system
+- it's neede because parallel computers have performance advantages.
+- Distributed systems are inherently parallel.
+
+**** Interactivity
+- by means of reflexivity and dynamism, language allows direct, interactive development.
+- no inefficient edit-compile-debug cycles.
+- direct interaction between the system and its human user -> replaces a shell.
+- its semantics allow efficient semi-compilation and interpretation.
+- this is both a feature of the stdlib and the environment.
+- it follows from dynamism, self-extensibility, and reflexitivity.
+  
+*** Low-Level awareness
+
+**** Scalability
+- to scale down are up it's power as needed
+
+**** Hardware consciousness
+
+**** Integration (with other systems)
+
+**** Partial evaluation
+- evaluation can be done as early as information and resources allow.
+- function calls, message passing, etc. can be dynamically compiled or inlined.
+- more precise than "eager evaluation" since it applies to non-terminal objects to (all objects are equal)
+- the compiler/interpreter might be a simple and trivial (parametrizable) front end, and partial
+evaluation done on parsed objects.
+
+**** Persistence
+- Objects automatically persist togheter with the system.
+- no need to explicity convert objects to and from unsafe files.
+
+**** Garbage Collection
+- objects are automatically destroyed when no more needed.
+
+*** Nice Human Interface
+
+**** On Syntax
+
+- Syntax is purely for human convenience. (question this, link to essay?)
+- Not lisps focus on convenience, but offer no nice semantics.
+- Conceptually semantics are everything.
+- syntax is only sugar for the user.
+
+**** Automatic rewrite
+- the language system should automatically rewrite programs according to user-defined criteria.
+- Automatic rewrite is needed because different users have different uderstandings of computing.
+- the computer shall adapt the syntax to user's concerns, not the converse.
+
+**** Self-extensible Language
+- syntax must be able to evolve according to the context.
+- new syntaxes may be dynamically defined.
+- this must be done in along with the semantic aspect of things.
+- any language can be added in a module as a sublanguage of the HLL.
+
+**** Implicitness
+- the user should never have to say more than they need (also, economics).
+
+**** Compatibility
+- there is no need to be compatible with any previous language
+- we will stick with older traditions when there is no argument against it.
+- reuse and mantainance of older code is donde through meta-programming
+and code translation.
+- no version jump problems because each upgrade comes with their upgrade 
+
+** HLL Examples
+
+*** interactive shell
+- job control
+- composing and adapting simple components into a program (see Knuth's vs Unix script)
+- terse, clear syntax
+
+*** scripting language
+- completion and discovery is trivial
+- Verb-Object Object-Verb orderings(?)
+- Easy embedding of DSLs
+
+*** structural editor (WYSIWYG)
+- quasi-quotating
+- non-trivial translations (more than macro-expansions)
+- mechanisms for extending domain-specific uses
+- mechanisms for limiting grammar (domain-specifi safety, encoding efficiency)
+
+*** a database language (4GL queries)
+- boolean and relational query language (for info stores, and query lang abstractions)
+- a equational constraint system, a strategizer for solving it dynamically.
+
+*** a basis for natural language interfaces
+- including knowledge bases
+
+** What is Tunes (by David)
+
+*** No arbitrary distinction between:
+
+**** variables and files
+- the programmer sees all data as typed variables, the user as files.
+- with blurring between disk and memory: persistent data storage, no need to explicitely state it.
+
+**** functions and programs
+- the "contexts" of high-level functional languages replace directories.
+
+**** data and code
+- functions are first-class variables
+  
+**** programs and libraries
+- currently:
+  - programs come with a set of functionalities
+  - those can only be invoked by the user, by performing GUI actions, not by other programs
+  - unless the program is a library, in which case the reverse is true
+- in tunes:
+  - each program is a set of functions, together with jooks to make those functions visible
+  - the functions might be called from other programs
+  - possible to write scripts which can call capabilities of other programs
+
+** Languages and Expressiveness
+
+**** Computer Languages
+- Language is just _any_ means by which humans, computers, or any active member of a dynamical system can communicate information.
+- Computer Languages are languages used to vehiculate information about what the ocmputer should do; any media for exchanging information is a language.
+- What makes the language is the structure of the information communicated, not the media used for this communication to happen.
+- symbol-based languages are simpler to implement on today's computers, but that's only a historical accidental dependency.
+- not all languages are equivalent.
+
+**** Goal of a computer language
+- computer languages have nothing to do with finished, static "perfect" computer programs, 
+those can have been written in any language.
+- if all interesting things have been said and understood,
+and all programs ever need already run satisfactorily on current machines, 
+there would be no more need for a language.
+- but there are infinitely many interesting things, 
+and only finitely things said and understood,
+so a language will always be needed (i.e. no finite language (grammarless dictionary) will ever be enough)
+- computer language haeve to do with programming
+  - modifying programs
+  - creating new programs
+  - not just watching existing ones
+- computer languages are for communicating, be it with other people or a further self.
+- languages are protocols to store and retrieve documents
+  - In such a way that the meaning, the properties, etc. be preserved.
+- the qualities of a language lie in the easiness to express _new_ concepts and to _modify_ existing routines.
+- therefore, a programming language is better than another if:
+  - it is easier for a human to write a new program
+    - or to modify an existing program
+    - or to reuse existing code (this is to some extension, modifying code)
+  - sentences of equal meaning are shorter, or just if better accuracy is reachable.
+
+**** Reuse vs. Rewrite
+- Rewriting is a serious problem for everyone.
+- rewriting is a loss of time, makes programming delays quite longer, and costly.
+- people spending most of their time writing again new versions of earlier works, because they lack _secure reuse_.
+- Rewrite is waste of shared resources by lack of communication.
+- we want the oppposite, software reuse, software sharing.
+
+**** Copying Code
+- copy-paste method is the first and simplest way to reuse code
+- copy -> paste -> modify to fit new purpose.
+- tedious and error-prone
+- bad manners to copy other people's code.
+- uncontrolled propagation of bugs and lack of features across the system.
+- copying paradox:
+  - bad copying introduces new errors
+  - good copying spreads existing errors
+- in either case, it's an error prone method.
+- to correct an error, every copy of the code must be corrected accroding to its own particular context.
+- tracking down all copies is difficult (the code has been modified)
+
+**** Having an Extended Vocabulary...
+- relying on standard libraries is the sencond easiest way to reuse code.
+- look for what you need in the index, read the manual for the code to use, and follow the instructions.
+- the problem is that not everything one needs is part of that library.
+- standard libraries paradoxes:
+  - what makes some work useful is precisely what hasn't done before, if it gets added, someone did that job
+  - if you wait for the feature you need to be on the standard, by that time you we'll need other new features
+  - to be more useful, they need to grow larger, the larger they grow, 
+    the more time you take to look for something therefore is less useful.
+
+**** ... or a Better Grammar
+- A dictionary does not deal with new words, only old ones.
+- To express non-trivial things, one must combine words into meaningful sentences.
+- combination is a matter of grammar (structure of the language) not vocabulary.
+- standard libraries deal with sharing old software, not new software.
+- statically extended vocabulary < dynamically extended vocabulary
+- reuse for grammar means you can define new words from existing ones, to add new words
+  and new dictionaries.
+- two universal constructions should always be available:
+  - extracting an object's value in a context (beta-reduction)
+  - abstracting the context of an object (lambda-abstraction)
+- context is made of variables
+- when you reduce an object, replace ocurrences of the var with its bound value
+- when you abstract context, you create an object with occurences of an unbound variable inside
+- a third operation is function evaluation that binds an object to a free variable in a context.
+
+
