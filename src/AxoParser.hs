@@ -80,8 +80,6 @@ reservedSymbols = ['(', ')', '{', '}']
 -- | a valid symbol is one that does not contains reserved symbols
 validSymbol = noneOf reservedSymbols
 
-nonReservedSymbol = do
-  s <- symbolChar <|> puntuactionChar
 
 -- | any char except a double quote, used in string literals
 notDoubleQuote = noneOf ['"']
@@ -92,22 +90,23 @@ notDoubleQuote = noneOf ['"']
 identifier :: Parser Atom
 identifier = Id <$> (varId <|> typeId)
 
--- | any sequence of non reserved chars, starting with a lowercase char
+-- | any sequence of non reserved chars, starting with a lowercase char, symbol, or punctuation
 varId :: Parser String
-varId = do
-  f <- lowerChar
-  rest <- many validSymbol
-  return $ f:rest
+varId = (:) <$> (first >>= check) <*> (many validSymbol)
+        where first = lowerChar <|> symbolChar <|> punctuationChar
+              check x = if x `elem` reservedSymbols
+              then fail $ "char " ++ show x ++ " cannot be the first char of an identifier"
+              else return x
 
+-- | any sequence of non reserved chars, starting with a uppercase char
 typeId :: Parser String
-typeId = do
-  f <- upperChar
-  rest <- many validSymbol
-  return $ f:rest
+typeId = (:) <$> upperChar <*> (many validSymbol)
 
+-- | any sequence of digits in decimal representation
 intLit :: Parser Literal
 intLit = IntLit <$> decimal
 
+-- | a decimal, followed by a '.' then another decimal, zero-digits are not allowed
 floatLit :: Parser Literal
 floatLit = do
   d1 <- decimal
@@ -115,7 +114,8 @@ floatLit = do
   d2 <- decimal
   return $ FloatLit $ d1 ++ "." ++ d2
 
--- this needs to handle more cases, especially the char escapes
+
+-- TODO this needs to handle more cases, especially the char escapes
 stringLit :: Parser Literal
 stringLit = StringLit <$> surroundedBy doubleQuote (many notDoubleQuote)
   where doubleQuote = char '"'
