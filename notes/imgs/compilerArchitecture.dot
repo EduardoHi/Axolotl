@@ -1,0 +1,10 @@
+
+digraph "Compiler Architecture" {
+ "Read File" -> Parsing [ label=" SourceCode" ];
+ Parsing -> Desugar [ label=" ParseTree"];
+ Desugar -> TransformToAST [ label=" ParseTree"];
+ TransformToAST -> TypeCheck [ label=" ASTree"];
+ TypeCheck -> MacroExpansion [ label=" ASTree"];
+ MacroExpansion -> TypeCheck;
+ MacroExpansion -> CodeGeneration [ label=" AnnotatedASTree"];
+}
