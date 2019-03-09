@@ -2,10 +2,9 @@ module Spec where
 
 
 import LexerSpec
+import CheckSpec
 
 import Test.Hspec
-import Test.Hspec.Megaparsec
-import Text.Megaparsec
   
 import AxoParser
 
@@ -16,4 +15,4 @@ import AxoParser
 
 
 main :: IO ()
-main = hspec lexerSpec
+main = hspec (lexerSpec >> checkSpec)

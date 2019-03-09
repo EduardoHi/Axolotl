@@ -25,6 +25,7 @@ dependencies:
 - mtl
 - hspec
 - hspec-megaparsec
+- QuickCheck
 
 library:
   source-dirs: src

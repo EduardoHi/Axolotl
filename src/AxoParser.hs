@@ -15,7 +15,6 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
-
 data Literal = IntLit String
              | FloatLit String
              | StringLit String
@@ -144,4 +143,6 @@ atom = identifier <|> (Literal <$> literal)
 
 literal :: Parser Literal
 literal = intLit <|> floatLit <|> stringLit <|> charLit
+
+
 
