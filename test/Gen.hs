@@ -5,6 +5,7 @@ import Control.Monad
 
 import AxoParser
 
+-- to manually check the generators, use: `sample` e.g. `sample gentIntLit`
 
 genIntLit :: Gen Literal
 genIntLit = IntLit <$> (sized $ \n ->
