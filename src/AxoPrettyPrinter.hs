@@ -20,7 +20,8 @@ ppAtom (Literal l) = ppLiteral l
 ppLiteral lit = case lit of
   (IntLit s) -> s
   (FloatLit s) -> s
-  (StringLit s) -> show s
+  -- this should probably be show s to handle \ cases
+  (StringLit s) -> "\"" ++ s ++ "\""
   (CharLit c) -> show c
 
 

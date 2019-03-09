@@ -22,8 +22,17 @@ import Gen
 
 checkSpec :: Spec
 checkSpec = do
-  describe "parsing an integer literal" $ do
-    it "is the inverse of pretty printing it" $ forAll genIntLit $
-      (\x -> (parse intLit "" (ppLiteral x)) === (Right x))
+  describe "parsing literals" $ do
+    context "parsing ints" $ do
+      it "parse intLit is the inverse of ppLiteral" $ forAll genIntLit $
+        (\x -> (parse intLit "" (ppLiteral x)) === (Right x))
 
 
+    context "parsing floats" $ do
+      it "parse floatLit is the inverse of ppLiteral" $ forAll genFloatLit $
+        (\x -> (parse floatLit "" (ppLiteral x)) === (Right x))
+
+
+    context "parsing strings" $ do
+      it "parse stringLit is the inverse of ppLiteral" $ forAll genStringLit $
+        (\x -> (parse stringLit "" (ppLiteral x)) === (Right x))

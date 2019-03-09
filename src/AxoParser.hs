@@ -153,7 +153,7 @@ exprComment :: Parser (Either Exp Comment)
 exprComment = (Left <$> expr) <|> (Right <$> comment)    
 
 expr :: Parser Exp
-expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- <|> i
+expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- <|> infix and indent expressions
 
 atom :: Parser Atom
 atom = identifier <|> (Literal <$> literal)
