@@ -6,7 +6,7 @@ import CheckSpec
 
 import Test.Hspec
   
-import AxoParser
+import Axo.Parser
 
 -- Workflow to add more specs:
 -- 1. decide where the spec should live, e.g. if it's a lexer spec, add it on LexerSpec.hs

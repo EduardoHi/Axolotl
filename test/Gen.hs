@@ -5,7 +5,7 @@ import Control.Monad
 import Numeric
 
 
-import AxoParser
+import Axo.Parser
 
 -- to manually check the generators, use: `sample` e.g. `sample gentIntLit`
 

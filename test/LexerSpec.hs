@@ -6,7 +6,7 @@ import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
   
-import AxoParser
+import Axo.Parser
 
 lexerSpec :: Spec
 lexerSpec = do

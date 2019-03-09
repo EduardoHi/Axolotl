@@ -7,8 +7,8 @@ import Test.QuickCheck
 
 import Text.Megaparsec
   
-import AxoParser
-import AxoPrettyPrinter
+import Axo.Parser
+import Axo.PrettyPrinter
 import Gen
 
 
