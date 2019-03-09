@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module AxoParser where
 
 import System.Environment
@@ -22,7 +23,10 @@ data Literal = IntLit String
              deriving (Show, Eq)
 
 
-data Program = Program [Sexp] deriving (Show, Eq)
+-- TODO: if we relax the Program definition of not only one space, and
+-- not only sexps, Program and ExpSeq are equivalent
+-- and things like comment handling is easier
+data Program = Program [Either Sexp Comment] deriving (Show, Eq)
 
 data Atom = Id String
           | Literal Literal
@@ -36,13 +40,15 @@ data Exp = ESexp Sexp
          | EInfixexp InfixExp
          deriving (Show, Eq)
 
-data ExpSeq = ExpSeq [Exp] deriving (Show, Eq)
+data ExpSeq = ExpSeq [Either Exp Comment] deriving (Show, Eq)
 
 data Iexp = Iexp ExpSeq [ExpSeq] deriving (Show, Eq)
 
 data InfixExp = InfixExp Exp Exp Exp deriving (Show, Eq)
 
-
+-- Comments might appear inside a sequence of expressions, or at the top level of a program
+data Comment = Comment String deriving (Show, Eq)
+  
 -------- Lexer --------
 
 -- | this is a non-permissive space consumer, it only consumes 1 space char
@@ -124,16 +130,27 @@ charLit = CharLit <$> surroundedBy singleQuote alphaNumChar
   where singleQuote = char '\''
 
 
+-- | a comment line starts with -- and ends with a '\n', inbetween can be anything
+comment :: Parser Comment
+comment = Comment <$> between (string "--") (char '\n') inside
+  where inside = many (noneOf ['\n'])
+
 -------- Parser --------
 
+-- The toplevel definition of a program
 program :: Parser Program
-program = Program <$> many sExp
+-- the below definition only works if Program is to be unified with expSeq
+-- program = Program <$> many exprComment
+program = Program <$> many ((Left <$> sExp) <|> (Right <$> comment))
 
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeq
 
 expSeq :: Parser ExpSeq
-expSeq = ExpSeq <$> sepBy1 expr oneSpace
+expSeq = ExpSeq <$> sepBy1 exprComment oneSpace
+
+exprComment :: Parser (Either Exp Comment)         
+exprComment = (Left <$> expr) <|> (Right <$> comment)    
 
 expr :: Parser Exp
 expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- <|> i

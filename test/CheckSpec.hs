@@ -18,7 +18,6 @@ import Gen
 
 -- id = parse . pretty
 
-
 -- to debug one property, put the function `debug` inbetween the spec to print the cases, e.g. `debug $ forAll genIntLit ...`
 
 checkSpec :: Spec
