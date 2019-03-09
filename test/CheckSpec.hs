@@ -36,3 +36,10 @@ checkSpec = do
     context "parsing strings" $ do
       it "parse stringLit is the inverse of ppLiteral" $ forAll genStringLit $
         (\x -> (parse stringLit "" (ppLiteral x)) === (Right x))
+
+
+    context "parsing chars" $ do
+      it "parse charLit is the inverse of ppLiteral" $ forAll genCharLit $
+        (\x -> (parse charLit "" (ppLiteral x)) === (Right x))
+
+     

@@ -31,3 +31,9 @@ genStringLit = StringLit <$> (sized $ \n -> do
                                   choose ('0','9') ]                                  
                                 when (ch == '"') discard
                                 return ch))
+
+
+genCharLit :: Gen Literal
+genCharLit = CharLit <$> oneof [ choose ('a','z'),
+                                 choose ('A','Z'),
+                                 choose ('0','9') ]
