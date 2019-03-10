@@ -4,7 +4,7 @@ module Axo.PrettyPrinter where
 -- TODO: add AST pretty printing
 
 import Axo.Parser
-
+import Data.List
 
 
 
@@ -29,4 +29,23 @@ ppIdentifier :: Identifier -> String
 ppIdentifier (VarId i) = i
 ppIdentifier (TypeId i) = i
 
+ppExpSeq :: ExpSeq -> String
+ppExpSeq (ExpSeq es) = intercalate " " $ map (either pprint pprint) es
 
+-- instance PrettyPrint Sexp where
+--   pprint (Sexp s) = 
+
+instance PrettyPrint Comment where
+  pprint (Comment c) = "--" ++ c ++ "\n"
+
+instance PrettyPrint Exp where
+  -- replace this with ppExpSeq
+  pprint (ESexp s) = pprint s
+  --TODO change ppAtom to a well formed instance of Pretty Print for atom
+  pprint (EAtom a) = ppAtom a
+
+instance PrettyPrint Sexp where
+  pprint (Sexp es) = "("++ (ppExpSeq es)++ ")"
+
+class PrettyPrint x where
+  pprint :: x -> String

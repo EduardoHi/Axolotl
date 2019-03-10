@@ -36,6 +36,12 @@ checkSpec = do
   describe "parsing atoms" $ do
     genSpec "atom" genAtom atom ppAtom
 
+  describe "parsing Expressions" $ do
+    genSpec "expression" genExp expr pprint
+    genSpec "expression sequence" genExpSeq expSeq ppExpSeq
+    genSpec "comment" genComment comment pprint
+    genSpec "s-expression" genSexp sExp pprint
+
 
 -- | genSpec needs a name, a generator, a parser and a pretty printer,
 -- | all of which must act on the same typep

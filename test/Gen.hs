@@ -23,12 +23,10 @@ genFloatLit = (FloatLit . showFullPrecision) <$> (arbitrary :: Gen Float)
 
 -- not as strong as all possible strings might be more things than alphaNumeric chars
 genStringLit :: Gen Literal
-genStringLit = StringLit <$> (sized $ \n -> do
-                              replicateM n $ (do
+genStringLit = StringLit <$> listOf1 (do
                                 ch <- genAnyChar
                                 when (ch == '"') discard
-                                return ch))
-
+                                return ch)
 
 genCharLit :: Gen Literal
 genCharLit = CharLit <$> genAnyChar
@@ -61,16 +59,14 @@ genAnyChar = oneof [genPunctuationChar, genAlphaNumChar]
 genVarId :: Gen Identifier
 genVarId = VarId <$> do
   f <- first
-  chs <- (sized $ \n -> do
-             replicateM n genAnyChar)
+  chs <- listOf1 genAnyChar
   return $ f:chs
   where first = oneof [genLowerChar, genPunctuationChar]
 
 genTypeId :: Gen Identifier
 genTypeId = TypeId <$> do
   f <- first
-  chs <- (sized $ \n -> do
-             replicateM n genAnyChar)
+  chs <- listOf1 genAnyChar
   return $ f:chs
   where first = genUpperChar
 
@@ -83,4 +79,22 @@ genAtom = oneof
             Id <$> genIdentifier,
             Literal <$> genLiteral
           ]
+
+genSexp :: Gen Sexp
+genSexp = Sexp <$> genExpSeq
+
+genExp :: Gen Exp
+genExp = oneof [EAtom <$> genAtom,
+                ESexp <$> genSexp
+                -- TODO EIexp and EInfixexp pending
+               ]
+
+genExpSeq :: Gen ExpSeq
+genExpSeq =  ExpSeq <$> (listOf1 $ oneof [Left <$> genExp,
+                                          Right <$> genComment])
+
+genComment :: Gen Comment
+genComment = Comment <$> do
+  chs <- listOf1 genAnyChar
+  return $ "--"++chs++"\n"
 
