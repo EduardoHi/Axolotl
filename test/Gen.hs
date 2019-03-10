@@ -4,6 +4,7 @@ import Test.QuickCheck
 import Control.Monad
 import Numeric
 
+import Data.Char
 
 import Axo.Parser
 
@@ -23,17 +24,63 @@ genFloatLit = (FloatLit . showFullPrecision) <$> (arbitrary :: Gen Float)
 -- not as strong as all possible strings might be more things than alphaNumeric chars
 genStringLit :: Gen Literal
 genStringLit = StringLit <$> (sized $ \n -> do
-                              k <- choose (0,n)
-                              replicateM k $ (do
-                                ch <- oneof [
-                                  choose ('a','z'),
-                                  choose ('A','Z'),
-                                  choose ('0','9') ]                                  
+                              replicateM n $ (do
+                                ch <- genAnyChar
                                 when (ch == '"') discard
                                 return ch))
 
 
 genCharLit :: Gen Literal
-genCharLit = CharLit <$> oneof [ choose ('a','z'),
-                                 choose ('A','Z'),
-                                 choose ('0','9') ]
+genCharLit = CharLit <$> genAnyChar
+
+
+genLiteral :: Gen Literal
+genLiteral = oneof
+             [
+               genIntLit,
+               genFloatLit,
+               genStringLit,
+               genCharLit
+             ]
+
+genLowerChar, genUpperChar, genDigitChar :: Gen Char
+genLowerChar = choose ('a','z')
+genUpperChar = choose ('A','Z')
+genDigitChar = choose ('0','9')
+
+genAlphaChar, genAlphaNumChar, genPunctuationChar :: Gen Char
+genAlphaChar = oneof [genLowerChar, genUpperChar]
+genAlphaNumChar = oneof [genAlphaChar, genDigitChar]
+genPunctuationChar = elements "!#$%&|*+-/:<=>?@^_~"
+
+-- | punctuation or alphanumeric
+genAnyChar :: Gen Char
+genAnyChar = oneof [genPunctuationChar, genAlphaNumChar]
+
+
+genVarId :: Gen Identifier
+genVarId = VarId <$> do
+  f <- first
+  chs <- (sized $ \n -> do
+             replicateM n genAnyChar)
+  return $ f:chs
+  where first = oneof [genLowerChar, genPunctuationChar]
+
+genTypeId :: Gen Identifier
+genTypeId = TypeId <$> do
+  f <- first
+  chs <- (sized $ \n -> do
+             replicateM n genAnyChar)
+  return $ f:chs
+  where first = genUpperChar
+
+genIdentifier :: Gen Identifier
+genIdentifier = oneof [ genVarId, genTypeId ]
+
+genAtom :: Gen Atom
+genAtom = oneof
+          [
+            Id <$> genIdentifier,
+            Literal <$> genLiteral
+          ]
+

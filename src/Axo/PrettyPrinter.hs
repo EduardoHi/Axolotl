@@ -13,10 +13,11 @@ import Axo.Parser
 
 -- prettyPrinting :: (a node of the Parser Tree) -> String
 
-ppAtom (Id s) = show s
+ppAtom :: Atom -> String
+ppAtom (Id s) = ppIdentifier s
 ppAtom (Literal l) = ppLiteral l
 
-
+ppLiteral :: Literal -> String
 ppLiteral lit = case lit of
   (IntLit s) -> s
   (FloatLit s) -> s
@@ -24,5 +25,8 @@ ppLiteral lit = case lit of
   (StringLit s) -> "\"" ++ s ++ "\""
   (CharLit c) -> show c
 
+ppIdentifier :: Identifier -> String
+ppIdentifier (VarId i) = i
+ppIdentifier (TypeId i) = i
 
 
