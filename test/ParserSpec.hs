@@ -12,6 +12,8 @@ parserSpec :: Spec
 parserSpec = do
   atomSpec
   commentSpec
+  exprSpec
+  sExpSpec
 
 atomSpec = do
     describe "Atom parser" $ do
@@ -56,7 +58,41 @@ commentSpec = do
         it "parses a comment made out of comments" $
             parse comment "" "---------\n" `shouldParse` (Comment "-------")
 
+exprSpec = do
+    describe "Expression parser" $ do
 
+        -- Succeses
+
+        it "parses a VarId" $
+            parse expr "" "aBcD" `shouldParse` (EAtom (Id (VarId "aBcD")))
+
+        it "parses a TypeId" $
+            parse expr "" "PascalCase" `shouldParse` (EAtom (Id (TypeId "PascalCase")))
+
+        it "parses an Integer" $
+            parse expr "" "5" `shouldParse` (EAtom (Literal (IntLit "5")))
+
+        it "parses a VarId followed by a Literals" $
+            parse expr "" "(aB \"hello\")" `shouldParse` (ESexp (Sexp (ExpSeq [
+                    (Left (EAtom (Id (VarId "aB")))),
+                    (Left (EAtom (Literal (StringLit "hello"))))])))
         
+        it "parses a VarId followed by a Comment" $
+            parse expr "" "(aB -- This is a comment\n)" `shouldParse` (ESexp (Sexp (ExpSeq [
+                    (Left (EAtom (Id (VarId "aB")))),
+                    (Right (Comment " This is a comment"))])))
 
+sExpSpec = do
+    describe "Symbolic Expression parser" $ do
+
+        -- Succeses
+
+        it "parses an sExp with a recursive sExp and a String Literal" $
+            parse sExp "" "((PascalCase 2.0) \"hello\")" `shouldParse` (Sexp (ExpSeq [
+                   (Left (ESexp (Sexp (ExpSeq [
+                       (Left (EAtom (Id (TypeId "PascalCase")))),
+                       (Left (EAtom (Literal (FloatLit "2.0"))))
+                       ])))),
+                   (Left (EAtom (Literal (StringLit "hello"))))]))
+        
         

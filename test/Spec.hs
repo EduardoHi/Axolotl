@@ -3,7 +3,7 @@ module Spec where
 
 import LexerSpec
 import CheckSpec
-
+import ParserSpec
 import Test.Hspec
   
 import Axo.Parser
@@ -15,4 +15,4 @@ import Axo.Parser
 
 
 main :: IO ()
-main = hspec (lexerSpec >> checkSpec)
+main = hspec (lexerSpec >> parserSpec >> checkSpec)
