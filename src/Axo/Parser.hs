@@ -155,13 +155,22 @@ sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeq
 
 expSeq :: Parser ExpSeq
-expSeq = ExpSeq <$> (some exprComment)
+expSeq = ExpSeq <$> many exprComment
 
 exprComment :: Parser (Either Exp Comment)         
 exprComment = (Left <$> expr) <|> (Right <$> comment)    
 
 expr :: Parser Exp
 expr = lexeme $ (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
+
+infixExp :: Parser InfixExp
+infixExp = do 
+  char '{'
+  e1 <- expr
+  e2 <- expr
+  e3 <- expr
+  char '}'
+  return $ InfixExp e1 e2 e3
 
 atom :: Parser Atom
 atom = (try $ Literal <$> literal) <|> identifier <?> "Atom"

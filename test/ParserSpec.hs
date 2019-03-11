@@ -14,6 +14,7 @@ parserSpec = do
   commentSpec
   exprSpec
   sExpSpec
+  infixExpSpec
 
 atomSpec = do
     describe "Atom parser" $ do
@@ -95,4 +96,20 @@ sExpSpec = do
                        ])))),
                    (Left (EAtom (Literal (StringLit "hello"))))]))
         
+infixExpSpec = do
+    describe "Infix Expression parser" $ do
+
+        -- Succeses
+
+        it "parses an infixExp with a variable an operator and an Integer" $
+            parse infixExp "" "{x = 3}" `shouldParse` (InfixExp 
+                        (EAtom (Id (VarId "x"))) 
+                        (EAtom (Id (VarId "="))) 
+                        (EAtom (Literal (IntLit "3"))))
+
+        it "parses an infixExp with a variable an operator and an Integer" $
+            parse infixExp "" "{5 + 18}" `shouldParse` (InfixExp 
+                    (EAtom (Literal (IntLit "5"))) 
+                    (EAtom (Id (VarId "+"))) 
+                    (EAtom (Literal (IntLit "18"))))
         
