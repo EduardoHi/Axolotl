@@ -133,8 +133,8 @@ signed p = do
 
 -- TODO this needs to handle more cases, especially the char escapes
 stringLit :: Parser Literal
-stringLit = StringLit <$> surroundedBy doubleQuote (many L.charLiteral)
-  where doubleQuote = char '"'
+stringLit = StringLit <$> (doubleQuote >> manyTill L.charLiteral doubleQuote)
+   where doubleQuote = char '"'
 
 charLit :: Parser Literal
 charLit = CharLit <$> surroundedBy singleQuote L.charLiteral

@@ -13,20 +13,13 @@ import Axo.Parser
 genIntLit :: Gen Literal
 genIntLit = (IntLit . show) <$> (arbitrary :: Gen Int)
 
-
--- small function to avoid scientific notation while printing float value
-showFullPrecision x = showFFloat Nothing x ""
-
 genFloatLit :: Gen Literal
-genFloatLit = (FloatLit . showFullPrecision) <$> (arbitrary :: Gen Float)
+genFloatLit = (FloatLit . show) <$> (arbitrary :: Gen Float)
 
 
 -- not as strong as all possible strings might be more things than alphaNumeric chars
 genStringLit :: Gen Literal
-genStringLit = StringLit <$> listOf1 (do
-                                ch <- genAnyChar
-                                when (ch == '"') discard
-                                return ch)
+genStringLit = StringLit <$> listOf genAnyChar
 
 genCharLit :: Gen Literal
 genCharLit = CharLit <$> genAnyChar
@@ -54,21 +47,22 @@ genPunctuationChar = elements "!#$%&|*+-/:<=>?@^_~\\"
 -- | punctuation or alphanumeric
 genAnyChar :: Gen Char
 genAnyChar = oneof [genPunctuationChar, genAlphaNumChar]
-
+  
 
 genVarId :: Gen Identifier
-genVarId = VarId <$> do
-  f <- first
-  chs <- listOf1 genAnyChar
-  return $ f:chs
-  where first = oneof [genLowerChar, genPunctuationChar]
+genVarId = VarId <$> oneof [ listOf1 genPunctuationChar,
+                             onlyAlphaNum ]
+           where onlyAlphaNum = (:) <$> genLowerChar <*> (listOf genAlphaNumChar)
+  -- f <- first
+  -- chs <- listOf1 genAnyChar
+  -- return $ f:chs
+  -- where first = oneof [genLowerChar, genPunctuationChar]
 
 genTypeId :: Gen Identifier
 genTypeId = TypeId <$> do
-  f <- first
-  chs <- listOf1 genAnyChar
+  f <- genUpperChar
+  chs <- listOf genAlphaNumChar
   return $ f:chs
-  where first = genUpperChar
 
 genIdentifier :: Gen Identifier
 genIdentifier = oneof [ genVarId, genTypeId ]

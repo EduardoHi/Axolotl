@@ -105,14 +105,20 @@ varIdSpec = do
     it "parses a camelCase name" $
       parse varId "" "aBcD" `shouldParse` (VarId "aBcD")
 
-    it "cuts the parsing when it meets a reserved symbol" $
-      parse varId "" "abc(d" `shouldParse` (VarId "abc")
-
     it "parses one symbol (not reserved one)" $
       parse varId "" "+" `shouldParse` (VarId "+")
 
     it "parses multiple symbols (not reserved ones)" $
       parse varId "" ">>=" `shouldParse` (VarId ">>=")
+
+    it "cuts the parsing when it meets a reserved symbol" $
+      parse varId "" "abc(d" `shouldParse` (VarId "abc")
+
+    it "cuts the parsing when it meets a space" $
+      parse varId "" "space here" `shouldParse` (VarId "space")
+
+    it "cuts the parsing when it meets a non-alphanumeric when parsing alphanumeric characters" $
+      parse varId "" "a#c!" `shouldParse` (VarId "a")
 
     -- Failures
 
@@ -121,13 +127,6 @@ varIdSpec = do
 
     it "fails if name starts with a number" $
       parse varId "" `shouldFailOn` "4abc"
-    
-    it "fails if there are spaces in the string" $
-      parse varId "" `shouldFailOn` "Space here"
-    
-    it "fails if there are combined alphanumeric and non-alphanumeric characters" $
-      parse varId "" `shouldFailOn` "a#c!"
-
 
 typeIdSpec = do
   describe "TypeId parser" $ do
@@ -143,6 +142,13 @@ typeIdSpec = do
     it "cuts the parsing when it meets a reserved symbol" $
       parse typeId "" "Abc)d" `shouldParse` (TypeId "Abc")
 
+    it "fails if there are spaces in the string" $
+      parse typeId "" "Space here" `shouldParse` (TypeId "Space")
+
+    it "cuts the parsing when it meets a non-alphanumeric" $
+      parse typeId "" "Ab#c" `shouldParse` (TypeId "Ab")
+  
+
     -- Failures
 
     it "fails if name starts with a number" $
@@ -150,10 +156,3 @@ typeIdSpec = do
     
     it "fails if name begins with a non-alphanumeric character" $
       parse typeId "" `shouldFailOn` "#Abc"
-
-    it "fails if name contains a non-alphanumeric character" $
-      parse typeId "" `shouldFailOn` "Ab#c"
-
-    it "fails if there are spaces in the string" $
-      parse typeId "" `shouldFailOn` "Space here"
-  

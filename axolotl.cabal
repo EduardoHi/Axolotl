@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 837d76ca432e5d5eed63804beef2066c45b7daa0785b984bbc7f7b463fd54a0e
+-- hash: d79701c6c687fac44b950fb2e7ec407d32fe6861ebb7e6db78365b6ccc3a2ea0
 
 name:           axolotl
 version:        0.1.0.0
@@ -67,6 +67,7 @@ test-suite axolotl-test
       CheckSpec
       Gen
       LexerSpec
+      ParserSpec
       Paths_axolotl
   hs-source-dirs:
       test
