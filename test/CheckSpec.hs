@@ -38,10 +38,10 @@ checkSpec = do
   describe "parsing comments" $ do
     genSpec "comment" genComment comment pprint
 
-  describe "parsing Expressions" $ do
-    genSpec "expression" genExp expr pprint
-    genSpec "expression sequence" genExpSeq expSeq ppExpSeq
-    genSpec "s-expression" genSexp sExp pprint
+  -- describe "parsing Expressions" $ do
+  --   genSpec "expression" genExp expr pprint
+  --   genSpec "expression sequence" genExpSeq expSeq ppExpSeq
+  --   genSpec "s-expression" genSexp sExp pprint
 
 
 -- | genSpec needs a name, a generator, a parser and a pretty printer,

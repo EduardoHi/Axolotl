@@ -98,15 +98,14 @@ identifier = Id <$> (varId <|> typeId)
 -- | otherwise it's invalid
 varId :: Parser Identifier
 varId = VarId <$> do
-  first <- (lowerChar <|> symbolChar <|> punctuationChar) >>= check
+  first <- (lowerChar <|> validSymbol)
   rest <- (do
               if isSymbol first || isPunctuation first
-                then many $ (symbolChar <|> punctuationChar) >>= check
-                else many $ alphaNumChar >>= check)
+                then syms -- many $ (symbolChar <|> punctuationChar) >>= check
+                else many alphaNumChar)
   return $ first:rest
-  where check x = if x `elem` reservedSymbols
-          then fail $ "char " ++ show x ++ " cannot be in an identifier"
-          else return x
+  where syms = many validSymbol
+        validSymbol = satisfy (\x -> (isSymbol x || isPunctuation x) && not (x `elem` reservedSymbols))
 
 
 -- | any sequence of alphanumeric chars, starting with a uppercase char
@@ -156,13 +155,13 @@ sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeq
 
 expSeq :: Parser ExpSeq
-expSeq = ExpSeq <$> sepBy1 exprComment oneSpace
+expSeq = ExpSeq <$> (some exprComment)
 
 exprComment :: Parser (Either Exp Comment)         
 exprComment = (Left <$> expr) <|> (Right <$> comment)    
 
 expr :: Parser Exp
-expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
+expr = lexeme $ (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
 
 atom :: Parser Atom
 atom = (try $ Literal <$> literal) <|> identifier <?> "Atom"
