@@ -141,7 +141,7 @@ charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
 
 -- | a comment line starts with -- and ends with a '\n', inbetween can be anything
 comment :: Parser Comment
-comment = Comment <$> between (string "--") (char '\n') inside
+comment = Comment <$> between (string "--") (char '\n') inside <?> "Comment"
   where inside = many (noneOf ['\n'])
 
 -------- Parser --------
@@ -165,7 +165,7 @@ expr :: Parser Exp
 expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
 
 atom :: Parser Atom
-atom = (try $ Literal <$> literal) <|> identifier
+atom = (try $ Literal <$> literal) <|> identifier <?> "Atom"
 
 literal :: Parser Literal
 literal = (try floatLit) <|> intLit <|> stringLit <|> charLit

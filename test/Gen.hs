@@ -79,11 +79,13 @@ genExp = oneof [EAtom <$> genAtom,
                ]
 
 genExpSeq :: Gen ExpSeq
-genExpSeq =  ExpSeq <$> (listOf1 $ oneof [Left <$> genExp,
-                                          Right <$> genComment])
+genExpSeq =  ExpSeq <$> (do
+                            first <- Left <$> genExp
+                            rest <- listOf $ frequency [
+                              (10, Left <$> genExp),
+                              (1, Right <$> genComment)]
+                            return (first:rest))
 
 genComment :: Gen Comment
-genComment = Comment <$> do
-  chs <- listOf1 genAnyChar
-  return $ "--"++chs++"\n"
+genComment = Comment <$> listOf1 genAnyChar
 

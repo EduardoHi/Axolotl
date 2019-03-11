@@ -35,10 +35,12 @@ checkSpec = do
   describe "parsing atoms" $ do
     genSpec "atom" genAtom atom ppAtom
 
+  describe "parsing comments" $ do
+    genSpec "comment" genComment comment pprint
+
   describe "parsing Expressions" $ do
     genSpec "expression" genExp expr pprint
     genSpec "expression sequence" genExpSeq expSeq ppExpSeq
-    genSpec "comment" genComment comment pprint
     genSpec "s-expression" genSexp sExp pprint
 
 
