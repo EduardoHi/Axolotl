@@ -113,15 +113,20 @@ typeId = TypeId <$> ((:) <$> upperChar <*> (many validSymbol))
 
 -- | any sequence of digits in decimal representation
 intLit :: Parser Literal
-intLit = IntLit <$> decimal
+intLit = IntLit <$> signed decimal
 
 -- | a decimal, followed by a '.' then another decimal, zero-digits are not allowed
 floatLit :: Parser Literal
-floatLit = do
-  d1 <- decimal
-  char '.'
-  d2 <- decimal
-  return $ FloatLit $ d1 ++ "." ++ d2
+floatLit = FloatLit <$> signed (show <$> L.float)
+
+-- | reads the given parser, but with an optional sign before it
+signed :: Parser String -> Parser String
+signed p = do
+  sign <- optional (char '+' <|> char '-')
+  x <- p
+  return $ case sign of
+             Nothing -> x
+             Just s -> s:x
 
 
 -- TODO this needs to handle more cases, especially the char escapes

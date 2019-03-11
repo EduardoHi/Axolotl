@@ -26,11 +26,10 @@ checkSpec = do
     genSpec "int" genIntLit intLit ppLiteral
     genSpec "float" genFloatLit floatLit ppLiteral
     genSpec "string" genStringLit stringLit ppLiteral
-    genSpec "int" genCharLit charLit ppLiteral
+    genSpec "char" genCharLit charLit ppLiteral
 
   describe "parsing identifiers" $ do
     genSpec "varId" genVarId varId ppIdentifier
-
     genSpec "typeId" genTypeId typeId ppIdentifier
 
   describe "parsing atoms" $ do
