@@ -137,11 +137,10 @@ charLit :: Parser Literal
 charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
   where singleQuote = char '\''
 
-
 -- | a comment line starts with -- and ends with a '\n', inbetween can be anything
 comment :: Parser Comment
 comment = Comment <$> between (string "--") (char '\n') inside <?> "Comment"
-  where inside = many (noneOf ['\n'])
+  where inside = many $ noneOf ['\n']
 
 -------- Parser --------
 
@@ -149,7 +148,7 @@ comment = Comment <$> between (string "--") (char '\n') inside <?> "Comment"
 program :: Parser Program
 -- the below commented definition only works if Program is to be unified with expSeq
 -- program = Program <$> many exprComment
-program = Program <$> many ((Left <$> sExp) <|> (Right <$> comment))
+program = Program <$> many ((Right <$> comment) <|> (Left <$> sExp))
 
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeq
@@ -158,7 +157,7 @@ expSeq :: Parser ExpSeq
 expSeq = ExpSeq <$> many exprComment
 
 exprComment :: Parser (Either Exp Comment)         
-exprComment = (Left <$> expr) <|> (Right <$> comment)    
+exprComment = (Right <$> comment) <|> (Left <$> expr)
 
 expr :: Parser Exp
 expr = lexeme $ (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
