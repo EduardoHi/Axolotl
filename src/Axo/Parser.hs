@@ -130,8 +130,6 @@ signed p = do
              Nothing -> x
              Just s -> s:x
 
-
--- TODO this needs to handle more cases, especially the char escapes
 stringLit :: Parser Literal
 stringLit = StringLit <$> (doubleQuote >> manyTill L.charLiteral doubleQuote)
    where doubleQuote = char '"'
@@ -167,10 +165,8 @@ expr :: Parser Exp
 expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
 
 atom :: Parser Atom
-atom = (Literal <$> literal) <|> identifier
+atom = (try $ Literal <$> literal) <|> identifier
 
 literal :: Parser Literal
 literal = (try floatLit) <|> intLit <|> stringLit <|> charLit
-
-
 

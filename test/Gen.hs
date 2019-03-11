@@ -16,14 +16,11 @@ genIntLit = (IntLit . show) <$> (arbitrary :: Gen Int)
 genFloatLit :: Gen Literal
 genFloatLit = (FloatLit . show) <$> (arbitrary :: Gen Float)
 
-
--- not as strong as all possible strings might be more things than alphaNumeric chars
 genStringLit :: Gen Literal
-genStringLit = StringLit <$> listOf genAnyChar
+genStringLit = StringLit <$> listOf genAnyChar -- this needs to have a generator for escaped chars
 
 genCharLit :: Gen Literal
 genCharLit = CharLit <$> genAnyChar
-
 
 genLiteral :: Gen Literal
 genLiteral = oneof
@@ -42,7 +39,9 @@ genDigitChar = choose ('0','9')
 genAlphaChar, genAlphaNumChar, genPunctuationChar :: Gen Char
 genAlphaChar = oneof [genLowerChar, genUpperChar]
 genAlphaNumChar = oneof [genAlphaChar, genDigitChar]
-genPunctuationChar = elements "!#$%&|*+-/:<=>?@^_~\\"
+genPunctuationChar = elements punctuation
+
+punctuation = "!#$%&|*+-/:<=>?@^_~"
 
 -- | punctuation or alphanumeric
 genAnyChar :: Gen Char
@@ -50,13 +49,9 @@ genAnyChar = oneof [genPunctuationChar, genAlphaNumChar]
   
 
 genVarId :: Gen Identifier
-genVarId = VarId <$> oneof [ listOf1 genPunctuationChar,
+genVarId = VarId <$> oneof [ listOf1 $ elements $ punctuation++"\\",
                              onlyAlphaNum ]
            where onlyAlphaNum = (:) <$> genLowerChar <*> (listOf genAlphaNumChar)
-  -- f <- first
-  -- chs <- listOf1 genAnyChar
-  -- return $ f:chs
-  -- where first = oneof [genLowerChar, genPunctuationChar]
 
 genTypeId :: Gen Identifier
 genTypeId = TypeId <$> do
