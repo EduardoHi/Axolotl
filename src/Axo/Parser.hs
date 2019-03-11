@@ -89,10 +89,6 @@ reservedSymbols = ['(', ')', '{', '}']
 -- | a valid symbol is one that does not contains reserved symbols
 validSymbol = noneOf reservedSymbols
 
-
--- | any char except a double quote, used in string literals
-notDoubleQuote = noneOf ['"']
-
 -- Lexemes 
 
 -- | an identifier is either a varId or a typeId
@@ -131,11 +127,11 @@ signed p = do
 
 -- TODO this needs to handle more cases, especially the char escapes
 stringLit :: Parser Literal
-stringLit = StringLit <$> surroundedBy doubleQuote (many notDoubleQuote)
+stringLit = StringLit <$> surroundedBy doubleQuote (many L.charLiteral)
   where doubleQuote = char '"'
 
 charLit :: Parser Literal
-charLit = CharLit <$> surroundedBy singleQuote alphaNumChar
+charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
   where singleQuote = char '\''
 
 
