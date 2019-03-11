@@ -8,6 +8,7 @@ import Control.Monad.Except
 import Control.Applicative hiding (many, some)
 
 import Data.Void
+import Data.Char
 import Numeric
 import Text.Megaparsec hiding (ParseError)
 import Text.Megaparsec.Char
@@ -52,7 +53,7 @@ data InfixExp = InfixExp Exp Exp Exp deriving (Show, Eq)
 
 -- Comments might appear inside a sequence of expressions, or at the top level of a program
 data Comment = Comment String deriving (Show, Eq)
-  
+
 -------- Lexer --------
 
 -- | this is a non-permissive space consumer, it only consumes 1 space char
@@ -84,10 +85,7 @@ decimal :: Parser String
 decimal = some digitChar
 
 -- | reserved symbols are either part of the syntax or not allowed in identifiers
-reservedSymbols = ['(', ')', '{', '}']
-
--- | a valid symbol is one that does not contains reserved symbols
-validSymbol = noneOf reservedSymbols
+reservedSymbols = ['(', ')', '{', '}', '\'', '\"']
 
 -- Lexemes 
 
@@ -95,17 +93,25 @@ validSymbol = noneOf reservedSymbols
 identifier :: Parser Atom
 identifier = Id <$> (varId <|> typeId)
 
--- | any sequence of non reserved chars, starting with a lowercase char, symbol, or punctuation
+-- | if it starts with a lowercase char, it is any any sequence of alphanumeric chars,
+-- | if it starts with symbol or punctuation, it can only be a sequence of those.
+-- | otherwise it's invalid
 varId :: Parser Identifier
-varId = VarId <$> ((:) <$> (first >>= check) <*> (many validSymbol))
-        where first = lowerChar <|> symbolChar <|> punctuationChar
-              check x = if x `elem` reservedSymbols
-              then fail $ "char " ++ show x ++ " cannot be the first char of an identifier"
-              else return x
+varId = VarId <$> do
+  first <- (lowerChar <|> symbolChar <|> punctuationChar) >>= check
+  rest <- (do
+              if isSymbol first || isPunctuation first
+                then many $ (symbolChar <|> punctuationChar) >>= check
+                else many $ alphaNumChar >>= check)
+  return $ first:rest
+  where check x = if x `elem` reservedSymbols
+          then fail $ "char " ++ show x ++ " cannot be in an identifier"
+          else return x
 
--- | any sequence of non reserved chars, starting with a uppercase char
+
+-- | any sequence of alphanumeric chars, starting with a uppercase char
 typeId :: Parser Identifier
-typeId = TypeId <$> ((:) <$> upperChar <*> (many validSymbol))
+typeId = TypeId <$> ((:) <$> upperChar <*> (many alphaNumChar))
 
 -- | any sequence of digits in decimal representation
 intLit :: Parser Literal
@@ -144,7 +150,7 @@ comment = Comment <$> between (string "--") (char '\n') inside
 
 -- The toplevel definition of a program
 program :: Parser Program
--- the below definition only works if Program is to be unified with expSeq
+-- the below commented definition only works if Program is to be unified with expSeq
 -- program = Program <$> many exprComment
 program = Program <$> many ((Left <$> sExp) <|> (Right <$> comment))
 
@@ -158,13 +164,13 @@ exprComment :: Parser (Either Exp Comment)
 exprComment = (Left <$> expr) <|> (Right <$> comment)    
 
 expr :: Parser Exp
-expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- <|> infix and indent expressions
+expr = (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
 
 atom :: Parser Atom
-atom = identifier <|> (Literal <$> literal)
+atom = (Literal <$> literal) <|> identifier
 
 literal :: Parser Literal
-literal = intLit <|> floatLit <|> stringLit <|> charLit
+literal = (try floatLit) <|> intLit <|> stringLit <|> charLit
 
 
 

@@ -49,7 +49,7 @@ genDigitChar = choose ('0','9')
 genAlphaChar, genAlphaNumChar, genPunctuationChar :: Gen Char
 genAlphaChar = oneof [genLowerChar, genUpperChar]
 genAlphaNumChar = oneof [genAlphaChar, genDigitChar]
-genPunctuationChar = elements "!#$%&|*+-/:<=>?@^_~"
+genPunctuationChar = elements "!#$%&|*+-/:<=>?@^_~\\"
 
 -- | punctuation or alphanumeric
 genAnyChar :: Gen Char
