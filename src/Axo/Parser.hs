@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Axo.Parser where
 
@@ -27,7 +28,7 @@ data Literal = IntLit String
 -- TODO: if we relax the Program definition of not only one space, and
 -- not only sexps, Program and ExpSeq are equivalent
 -- and things like comment handling is easier
-data Program = Program [Either Sexp Comment] deriving (Show, Eq)
+data Program = Program [Either Exp Comment] deriving (Show, Eq)
 
 data Identifier = VarId String
                 | TypeId String
@@ -56,11 +57,11 @@ data Comment = Comment String deriving (Show, Eq)
 
 -------- Lexer --------
 
--- | this is a non-permissive space consumer, it only consumes 1 space char
 sc :: Parser ()
-sc = L.space oneSpace empty empty
+sc = L.space (void $ takeWhile1P Nothing f) empty empty
+  where f ch = ch == ' '
 
-oneSpace = char ' ' >> return ()
+scn = L.space space1 empty empty  
 
 
 -- | equivalent to `between by by`
@@ -139,41 +140,72 @@ charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
 
 -- | a comment line starts with -- and ends with a '\n', inbetween can be anything
 comment :: Parser Comment
-comment = Comment <$> between (string "--") (char '\n') inside <?> "Comment"
+comment = lexeme $ (Comment <$> between (string "--") (char '\n') inside <?> "Comment")
   where inside = many $ noneOf ['\n']
 
 -------- Parser --------
 
 -- The toplevel definition of a program
 program :: Parser Program
--- the below commented definition only works if Program is to be unified with expSeq
--- program = Program <$> many exprComment
-program = Program <$> many ((Right <$> comment) <|> (Left <$> sExp))
+program = Program <$> (many $ L.nonIndented scn topLevelDecl)
+  where topLevelDecl = (Right <$> comment) <|> (Left <$> topLevelExps)
+        topLevelExps = (EIexp <$> indentExp) <|>
+                       (EInfixexp <$> infixExp) <|>
+                       (ESexp <$> sExp)
+                       
 
 sExp :: Parser Sexp
-sExp = Sexp <$> between (char '(') (char ')') expSeq
+sExp = Sexp <$> between (char '(') (char ')') sexpseq <?> "Sexpression"
+  where sexpseq = ExpSeq <$> (L.lineFold scn $ \sp -> x `sepBy1` try sp <* scn)
+        x = (Right <$> comment) <|> (Left <$> expr)
 
 expSeq :: Parser ExpSeq
 expSeq = ExpSeq <$> many exprComment
 
 exprComment :: Parser (Either Exp Comment)         
-exprComment = (Right <$> comment) <|> (Left <$> expr)
+exprComment = lexeme $ (Right <$> comment) <|> (Left <$> expr)
 
 expr :: Parser Exp
-expr = lexeme $ (ESexp <$> sExp) <|> (EAtom <$> atom) -- TODO <|> infix and indent expressions
+expr = lexeme $ (ESexp <$> sExp)
+       <|> (EInfixexp <$> infixExp)
+       <|> (EAtom <$> atom)
+       -- <|> TODO: Nested indentExpressions <|> (EIexp <$> indentExp)
 
+-- for now, infix expressions are only 3 expressions
 infixExp :: Parser InfixExp
-infixExp = do 
+infixExp = (do 
   char '{'
   e1 <- expr
   e2 <- expr
   e3 <- expr
   char '}'
-  return $ InfixExp e1 e2 e3
+  return $ InfixExp e1 e2 e3) <?> "InfixExpression"
+
+indentExp :: Parser Iexp
+indentExp = (uncurry Iexp) <$> L.indentBlock space p
+  where
+    p = do
+      header <- iexpseq -- (:) <$> (Left . EAtom <$> identifier) <*> expSeq
+      return (L.IndentSome Nothing (return . (header, )) expSeq)
+    iexpseq = ExpSeq <$> ( (:) <$> (Left . EAtom <$> (lexeme identifier)) <*> (many exprComment))
+
+-- indentItem =       
+
+iexp = L.indentBlock space p
+  where
+    p = do
+      header <- atom
+      return (L.IndentSome Nothing (return . (header, )) atom)
 
 atom :: Parser Atom
 atom = (try $ Literal <$> literal) <|> identifier <?> "Atom"
 
 literal :: Parser Literal
-literal = (try floatLit) <|> intLit <|> stringLit <|> charLit
+literal = (try floatLit) <|> intLit <|> stringLit <|> charLit <?> "Literal"
 
+
+parseProgram :: String -> String
+parseProgram input = case parse program "Axolotl" input of
+  Left err -> "error" ++ (errorBundlePretty err)
+  Right val -> show val
+  

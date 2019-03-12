@@ -23,31 +23,31 @@ import Gen
 checkSpec :: Spec
 checkSpec = do
   describe "parsing literals" $ do
-    genSpec "int" genIntLit intLit ppLiteral
-    genSpec "float" genFloatLit floatLit ppLiteral
-    genSpec "string" genStringLit stringLit ppLiteral
-    genSpec "char" genCharLit charLit ppLiteral
+    genSpec "int" genIntLit intLit
+    genSpec "float" genFloatLit floatLit
+    genSpec "string" genStringLit stringLit
+    genSpec "char" genCharLit charLit
 
   describe "parsing identifiers" $ do
-    genSpec "varId" genVarId varId ppIdentifier
-    genSpec "typeId" genTypeId typeId ppIdentifier
+    genSpec "varId" genVarId varId
+    genSpec "typeId" genTypeId typeId
 
   describe "parsing atoms" $ do
-    genSpec "atom" genAtom atom ppAtom
+    genSpec "atom" genAtom atom
 
   describe "parsing comments" $ do
-    genSpec "comment" genComment comment pprint
+    genSpec "comment" genComment comment
 
-  -- describe "parsing Expressions" $ do
-  --   genSpec "expression" genExp expr pprint
-  --   genSpec "expression sequence" genExpSeq expSeq ppExpSeq
-  --   genSpec "s-expression" genSexp sExp pprint
+  describe "parsing Expressions" $ do
+    genSpec "expression" boundedExp expr
+    genSpec "a sequence of expressions" boundedExpSeq expSeq
+    genSpec "s-expression" boundedSexp sExp
 
 
 -- | genSpec needs a name, a generator, a parser and a pretty printer,
--- | all of which must act on the same typep
-genSpec :: (Show a, Eq a) => String -> (Gen a) -> (Parser a) -> (a -> String) -> SpecWith ()
-genSpec name gen parser pretty = do
+-- | all of which must act on the same type
+genSpec :: (Show a, Eq a, PrettyPrint a) => String -> (Gen a) -> (Parser a) -> SpecWith ()
+genSpec name gen parser = do
     it ("parsing "++name++" is the inverse of pretty printing it") $ forAll gen $
-      (\x -> (parse parser "" (pretty x)) === (Right x))
+      (\x -> (parse parser "" (pprint x)) === (Right x))
   

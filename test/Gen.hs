@@ -49,14 +49,19 @@ genAnyChar = oneof [genPunctuationChar, genAlphaNumChar]
   
 
 genVarId :: Gen Identifier
-genVarId = VarId <$> oneof [ listOf1 $ elements $ punctuation++"\\",
-                             onlyAlphaNum ]
-           where onlyAlphaNum = (:) <$> genLowerChar <*> (listOf genAlphaNumChar)
+genVarId = VarId <$> oneof [ onlySymbols, onlyAlphaNum ]
+           where onlyAlphaNum = do
+                   k <- choose (0,14)
+                   (:) <$> genLowerChar <*> (vectorOf k genAlphaNumChar)
+                 onlySymbols = do
+                   k <- choose (1,4)
+                   vectorOf k $ elements $ punctuation++"\\"
 
 genTypeId :: Gen Identifier
 genTypeId = TypeId <$> do
+  k <- choose (1,10)
   f <- genUpperChar
-  chs <- listOf genAlphaNumChar
+  chs <- vectorOf (k-1) genAlphaNumChar
   return $ f:chs
 
 genIdentifier :: Gen Identifier
@@ -69,23 +74,26 @@ genAtom = oneof
             Literal <$> genLiteral
           ]
 
-genSexp :: Gen Sexp
-genSexp = Sexp <$> genExpSeq
+genSexp :: Int -> Gen Sexp
+genSexp x = Sexp <$> genExpSeq x
 
-genExp :: Gen Exp
-genExp = oneof [EAtom <$> genAtom,
-                ESexp <$> genSexp
-                -- TODO EIexp and EInfixexp pending
-               ]
+genExp :: Int -> Gen Exp
+genExp 0 = EAtom <$> genAtom
+genExp x = oneof [EAtom <$> genAtom, ESexp <$> genSexp (x `div` 2)]
 
-genExpSeq :: Gen ExpSeq
-genExpSeq =  ExpSeq <$> (do
-                            first <- Left <$> genExp
-                            rest <- listOf $ frequency [
-                              (10, Left <$> genExp),
-                              (1, Right <$> genComment)]
-                            return (first:rest))
+genExpSeq :: Int -> Gen ExpSeq
+genExpSeq x = ExpSeq <$> (do
+                           k <- choose (1,5)
+                           first <- (Left <$> ((EAtom . Id) <$> genIdentifier))
+                           rest <- vectorOf k $ frequency [
+                             (10, Left <$> genExp x),
+                             (1, Right <$> genComment)]
+                           return (first:rest))
+                                   
+
+boundedSexp = sized genSexp
+boundedExp = sized genExp
+boundedExpSeq = sized genExpSeq
 
 genComment :: Gen Comment
 genComment = Comment <$> listOf1 genAnyChar
-
