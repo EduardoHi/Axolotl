@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d79701c6c687fac44b950fb2e7ec407d32fe6861ebb7e6db78365b6ccc3a2ea0
+-- hash: 7a9b3868057f0768f2914fa7220fdfa493bccca9a96feff3a6bccacceb7b0282
 
 name:           axolotl
 version:        0.1.0.0
@@ -29,7 +29,6 @@ library
   exposed-modules:
       Axo.Parser
       Axo.PrettyPrinter
-      Lib
   other-modules:
       Paths_axolotl
   hs-source-dirs:
