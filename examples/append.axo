@@ -1,12 +1,17 @@
 
 
+-- Infix exp are for now limited to 2 expressions
+-- therefore we can not write something like this:
+-- (define (append Nil ys) :: {List a -> List a -> List a} ys)
+-- (define (append {x : xs} ys)
+-- {x : (append ys xs)})
 
-(define (append Nil ys) ys) :: {List a -> List a -> List a}
-(define (append {x : xs} ys)
-     {x : (append ys xs)})
 
+(define (append Nil ys) :: {(List a) -> {(List a) -> (List a)}}
+	ys)
 
-(define (++ Nil ys)
+define (append {x : xs} ys)
+  {x : (append ys xs)}
 
-(infixr ++)
-(define ++ append)
+-- (infixr ++)
+-- (define ++ append)
