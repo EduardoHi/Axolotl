@@ -6,6 +6,7 @@ import Numeric
 
 import Data.Char
 
+import Axo.ParseTree
 import Axo.Parser
 
 -- to manually check the generators, use: `sample` e.g. `sample gentIntLit`

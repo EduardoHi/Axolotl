@@ -5,7 +5,8 @@ module LexerSpec (
 import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
-  
+
+import Axo.ParseTree
 import Axo.Parser
 
 lexerSpec :: Spec

@@ -1,12 +1,17 @@
 module Spec where
 
 
-import LexerSpec
+-- QuickCheck Specs
 import CheckSpec
+
+import LexerSpec
 import ParserSpec
+
+
+import DesugarSpec
+  
 import Test.Hspec
   
-import Axo.Parser
 
 -- Workflow to add more specs:
 -- 1. decide where the spec should live, e.g. if it's a lexer spec, add it on LexerSpec.hs
@@ -15,4 +20,4 @@ import Axo.Parser
 
 
 main :: IO ()
-main = hspec (lexerSpec >> parserSpec >> checkSpec)
+main = hspec (lexerSpec >> parserSpec >> desugarSpec >> checkSpec)

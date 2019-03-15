@@ -5,7 +5,8 @@ module ParserSpec (
 import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec
-  
+
+import Axo.ParseTree
 import Axo.Parser
 
 parserSpec :: Spec
@@ -112,4 +113,5 @@ infixExpSpec = do
                     (EAtom (Literal (IntLit "5"))) 
                     (EAtom (Id (VarId "+"))) 
                     (EAtom (Literal (IntLit "18"))))
-        
+
+
