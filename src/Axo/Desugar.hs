@@ -22,12 +22,6 @@ instance Desugar Exp CleanExp where
 instance Desugar Iexp CleanSexp where
   desugar (Iexp header expseqs) = CleanSexp $ desugar $ joinExpSeqs (header:expseqs)
 
-
--- | joins the inner exps of ExpSeq
-joinExpSeqs :: [ExpSeq] -> ExpSeq
-joinExpSeqs xs = ExpSeq $ foldMap (\(ExpSeq e) -> e) xs
-
-
 -- the generalized Infix desugaring is more complex
 instance Desugar InfixExp CleanSexp where
   -- note that we change the order of a b c, to b, a, c
@@ -38,3 +32,4 @@ instance Desugar Sexp CleanSexp where
 
 instance Desugar ExpSeq CleanExpSeq where
   desugar (ExpSeq exps) = CleanExpSeq $ map desugar $ lefts exps
+

@@ -52,3 +52,9 @@ data CleanExp = CleanESexp CleanSexp
               | CleanEAtom Atom
               deriving (Show, Eq)
 
+
+
+-- | joins the inner exps of ExpSeq
+joinExpSeqs :: [ExpSeq] -> ExpSeq
+joinExpSeqs xs = ExpSeq $ foldMap (\(ExpSeq e) -> e) xs
+
