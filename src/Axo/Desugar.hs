@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 module Axo.Desugar where
 
@@ -13,23 +14,23 @@ instance Desugar Program CleanProgram where
 
 instance Desugar Exp CleanExp where
   desugar e = case e of
-    (ESexp s) -> CleanESexp $ desugar s
+    (ESexp s) -> desugar s
     (EAtom a) -> CleanEAtom a
-    (EIexp i) -> CleanESexp $ desugar i
-    (EInfixexp i) -> CleanESexp $ desugar i
+    (EIexp i) -> desugar i
+    (EInfixexp i) -> desugar i
 
 
-instance Desugar Iexp CleanSexp where
+instance Desugar Iexp CleanExp where
   desugar (Iexp header expseqs) = CleanSexp $ desugar $ joinExpSeqs (header:expseqs)
 
 -- the generalized Infix desugaring is more complex
-instance Desugar InfixExp CleanSexp where
+instance Desugar InfixExp CleanExp where
   -- note that we change the order of a b c, to b, a, c
-  desugar (InfixExp a b c) = (CleanSexp . CleanExpSeq) $ map desugar [b, a, c]
+  desugar (InfixExp a b c) = CleanSexp $ map desugar [b, a, c]
 
-instance Desugar Sexp CleanSexp where
+instance Desugar Sexp CleanExp where
   desugar (Sexp expseq) = CleanSexp $ desugar expseq
 
-instance Desugar ExpSeq CleanExpSeq where
-  desugar (ExpSeq exps) = CleanExpSeq $ map desugar $ lefts exps
+instance Desugar ExpSeq [CleanExp] where
+  desugar (ExpSeq exps) = map desugar $ lefts exps
 

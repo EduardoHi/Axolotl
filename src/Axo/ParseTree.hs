@@ -44,15 +44,9 @@ data Comment = Comment String deriving (Show, Eq)
 
 newtype CleanProgram = CleanProgram [CleanExp] deriving (Show, Eq)
 
-newtype CleanExpSeq = CleanExpSeq [CleanExp] deriving (Show, Eq)
-
-newtype CleanSexp = CleanSexp CleanExpSeq deriving (Show, Eq)
-
-data CleanExp = CleanESexp CleanSexp
+data CleanExp = CleanSexp [CleanExp]
               | CleanEAtom Atom
               deriving (Show, Eq)
-
-
 
 -- | joins the inner exps of ExpSeq
 joinExpSeqs :: [ExpSeq] -> ExpSeq
