@@ -20,6 +20,7 @@ import Axo.ParseTree
 
 
 type Parser = Parsec Void String
+type ParseError = ParseErrorBundle String Void
 
 -------- Lexer --------
 
@@ -170,8 +171,15 @@ literal :: Parser Literal
 literal = (try floatLit) <|> intLit <|> stringLit <|> charLit <?> "Literal"
 
 
-parseProgram :: String -> String
-parseProgram input = case parse program "Axolotl" input of
-  Left err -> "error" ++ (errorBundlePretty err)
-  Right val -> show val
-  
+
+parseProgram :: String -> Either ParseError Program
+parseProgram input = parse program "Axolotl" input
+
+
+-- | tihs function runs the parser, but also recieve a function f
+-- | that indicates what to do with the result of parsing `Program`
+runParser :: String -> (Program -> String) -> String
+runParser s f =
+  case parseProgram s of
+    Left err -> "Error: " ++ (errorBundlePretty err)
+    Right val -> f val

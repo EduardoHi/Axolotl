@@ -26,6 +26,7 @@ dependencies:
 - hspec
 - hspec-megaparsec
 - QuickCheck
+- containers
 
 library:
   source-dirs: src

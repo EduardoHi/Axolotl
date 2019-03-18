@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 54795ed8b5fef0765369dcf837a573264278ceea6fc924b4712423469a914630
+-- hash: 1318c96896c83977b9e938b335b1161daef630831177473a68e5fa72cb90154b
 
 name:           axolotl
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       Axo.Parser
       Axo.ParseTree
       Axo.PrettyPrinter
+      Axo.ToGraph
   other-modules:
       Paths_axolotl
   hs-source-dirs:
@@ -39,6 +40,7 @@ library
   build-depends:
       QuickCheck
     , base >=4.7 && <5
+    , containers
     , hspec
     , hspec-megaparsec
     , megaparsec
@@ -56,6 +58,7 @@ executable axolotl-exe
       QuickCheck
     , axolotl
     , base >=4.7 && <5
+    , containers
     , hspec
     , hspec-megaparsec
     , megaparsec
@@ -79,6 +82,7 @@ test-suite axolotl-test
       QuickCheck
     , axolotl
     , base >=4.7 && <5
+    , containers
     , hspec
     , hspec-megaparsec
     , megaparsec
