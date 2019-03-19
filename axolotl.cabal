@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1318c96896c83977b9e938b335b1161daef630831177473a68e5fa72cb90154b
+-- hash: a285ce72ac21363fc6f8795446f33af687c3716afa767b78734d88d580f83510
 
 name:           axolotl
 version:        0.1.0.0
@@ -53,7 +53,7 @@ executable axolotl-exe
       Paths_axolotl
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -W
   build-depends:
       QuickCheck
     , axolotl
@@ -77,7 +77,7 @@ test-suite axolotl-test
       Paths_axolotl
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -main-is Spec
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -main-is Spec -W
   build-depends:
       QuickCheck
     , axolotl

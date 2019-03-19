@@ -2,18 +2,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Axo.Parser where
 
-import System.Environment
-
 import Control.Monad
-import Control.Monad.Except
 import Control.Applicative hiding (many, some)
 
 import Data.Void
 import Data.Char
-import Numeric
 import Text.Megaparsec hiding (ParseError)
 import Text.Megaparsec.Char
-import Text.Megaparsec.Debug
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import Axo.ParseTree
@@ -28,6 +23,7 @@ sc :: Parser ()
 sc = L.space (void $ takeWhile1P Nothing f) empty empty
   where f ch = ch == ' '
 
+scn :: Parser ()
 scn = L.space space1 empty empty  
 
 
@@ -35,7 +31,7 @@ scn = L.space space1 empty empty
 surroundedBy :: Parser b -> Parser a -> Parser a
 surroundedBy by = between by by
 
-
+lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
 
 -- Helpers (i.e. not part of the "tokens")
@@ -52,7 +48,9 @@ digit = digitChar
 decimal :: Parser String
 decimal = some digitChar
 
+
 -- | reserved symbols are either part of the syntax or not allowed in identifiers
+reservedSymbols :: [Char]
 reservedSymbols = ['(', ')', '{', '}', '\'', '\"']
 
 -- Lexemes 
@@ -114,17 +112,16 @@ comment = lexeme $ (Comment <$> between (string "--") (char '\n') inside <?> "Co
 
 -- The toplevel definition of a program
 program :: Parser Program
-program = Program <$> (many $ L.nonIndented scn topLevelDecl)
-  where topLevelDecl = (Right <$> comment) <|> (Left <$> topLevelExps)
-        topLevelExps = (EIexp <$> indentExp) <|>
+program = Program <$> (many $ L.nonIndented scn topLevelExps)
+  where topLevelExps = (EIexp <$> indentExp) <|>
                        (EInfixexp <$> infixExp) <|>
-                       (ESexp <$> sExp)
+                       (ESexp <$> sExp) <|>
+                       (EComment <$> comment)
                        
 
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') sexpseq <?> "Sexpression"
-  where sexpseq = ExpSeq <$> (L.lineFold scn $ \sp -> x `sepBy1` try sp <* scn)
-        x = (Right <$> comment) <|> (Left <$> expr)
+  where sexpseq = ExpSeq <$> (L.lineFold scn $ \sp -> expr `sepBy1` try sp <* scn)
 
 expSeq :: Parser ExpSeq
 expSeq = ExpSeq <$> many exprComment
@@ -133,10 +130,11 @@ exprComment :: Parser (Either Exp Comment)
 exprComment = lexeme $ (Right <$> comment) <|> (Left <$> expr)
 
 expr :: Parser Exp
-expr = lexeme $ (ESexp <$> sExp)
+expr = lexeme $ (EComment <$> comment)
+       <|> (ESexp <$> sExp)
        <|> (EInfixexp <$> infixExp)
        <|> (EAtom <$> atom)
-       -- <|> TODO: Nested indentExpressions <|> (EIexp <$> indentExp)
+       -- TODO: Nested indentExpressions <|> (EIexp <$> indentExp)
 
 -- for now, infix expressions are only 3 expressions
 infixExp :: Parser InfixExp
@@ -154,15 +152,8 @@ indentExp = (uncurry Iexp) <$> L.indentBlock space p
     p = do
       header <- iexpseq -- (:) <$> (Left . EAtom <$> identifier) <*> expSeq
       return (L.IndentSome Nothing (return . (header, )) expSeq)
-    iexpseq = ExpSeq <$> ( (:) <$> (Left . EAtom <$> (lexeme identifier)) <*> (many exprComment))
+    iexpseq = ExpSeq <$> ( (:) <$> (EAtom <$> (lexeme identifier)) <*> (many expr))
 
--- indentItem =       
-
-iexp = L.indentBlock space p
-  where
-    p = do
-      header <- atom
-      return (L.IndentSome Nothing (return . (header, )) atom)
 
 atom :: Parser Atom
 atom = (try $ Literal <$> literal) <|> identifier <?> "Atom"

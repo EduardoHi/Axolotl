@@ -8,7 +8,6 @@
    ) where
 
 import Control.Monad.State
-import Data.Either (lefts)
 import Data.Data (Data)
 
 import Axo.ParseTree
@@ -44,7 +43,6 @@ type Node = (Integer, String)
 
 type Graph = ([Node], [Connection])
 type GraphState = (Integer, Graph)
-type GraphValue = Graph
 
 
 -- | A fresh id for the node, guaranteed to be different to the rest
@@ -138,10 +136,13 @@ instance ToGraph Exp where
   toNode e@(EAtom a) = e `parentOf` a
   toNode e@(EIexp i) = e `parentOf` i
   toNode e@(EInfixexp i) = e `parentOf` i
+  toNode e@(EComment c) = e `parentOf` c
+
+instance ToGraph Comment where
+  toNode c@(Comment s) = c `parentOf` s
 
 instance ToGraph ExpSeq where
-  -- TODO: Do Rights too
-  toNode e@(ExpSeq es) = (lefts es) `childrenOf` e
+  toNode e@(ExpSeq es) = es `childrenOf` e
 
 instance ToGraph Iexp where
   toNode e@(Iexp head body) = do
@@ -159,8 +160,7 @@ instance ToGraph InfixExp where
     return p
 
 instance ToGraph Program where
-  -- TODO: Do Rights too
-  toNode p@(Program es) = (lefts es) `childrenOf` p
+  toNode p@(Program es) = es `childrenOf` p
     
 
 

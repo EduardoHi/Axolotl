@@ -18,8 +18,7 @@ desugarSpec = do
     context "Program desugaring" $ do
       it "desugaring turns a program into a clean Program" $ do
          desugar (Program
-                   [(Left
-                     (EAtom int123))])
+                   [EAtom int123])
            `shouldBe`
            CleanProgram [CleanEAtom int123]
 

@@ -7,7 +7,7 @@ import qualified Data.Set as S
 import Control.Monad
 
 import Axo.ParseTree (Program, CleanProgram)
-import Axo.Parser (parseProgram, runParser, ParseError)
+import Axo.Parser (parseProgram, ParseError)
 import Axo.ToGraph (showGraph, toGraph, ToGraph)
 import Axo.Desugar (desugar)
 import qualified Axo.AST as AST (toAST, Program)
@@ -79,7 +79,6 @@ manErr fs = either reportError
 main :: IO ()
 main = do
   args <- getArgs
-  let flagsSet = flags args
   sourceCode <- if null args
        then getContents -- from stdin
        else readFile $ head args -- from a file

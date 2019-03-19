@@ -1,13 +1,8 @@
 module Gen where 
 
 import Test.QuickCheck
-import Control.Monad
-import Numeric
-
-import Data.Char
 
 import Axo.ParseTree
-import Axo.Parser
 
 -- to manually check the generators, use: `sample` e.g. `sample gentIntLit`
 
@@ -80,15 +75,15 @@ genSexp x = Sexp <$> genExpSeq x
 
 genExp :: Int -> Gen Exp
 genExp 0 = EAtom <$> genAtom
-genExp x = oneof [EAtom <$> genAtom, ESexp <$> genSexp (x `div` 2)]
+genExp x = frequency [ (10, EAtom <$> genAtom)
+                     , (10, ESexp <$> genSexp (x `div` 2))
+                     , (1, EComment <$> genComment)]
 
 genExpSeq :: Int -> Gen ExpSeq
 genExpSeq x = ExpSeq <$> (do
                            k <- choose (1,5)
-                           first <- (Left <$> ((EAtom . Id) <$> genIdentifier))
-                           rest <- vectorOf k $ frequency [
-                             (10, Left <$> genExp x),
-                             (1, Right <$> genComment)]
+                           first <- (EAtom . Id) <$> genIdentifier
+                           rest <- vectorOf k $ genExp x
                            return (first:rest))
                                    
 

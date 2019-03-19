@@ -13,7 +13,7 @@ data Literal = IntLit String
 -- TODO: if we relax the Program definition of not only one space, and
 -- not only sexps, Program and ExpSeq are equivalent
 -- and things like comment handling is easier
-data Program = Program [Either Exp Comment] deriving (Show, Eq, Data, Typeable)
+data Program = Program [Exp] deriving (Show, Eq, Data, Typeable)
 
 data Identifier = VarId String
                 | TypeId String
@@ -29,9 +29,10 @@ data Exp = ESexp Sexp
          | EAtom Atom
          | EIexp Iexp
          | EInfixexp InfixExp
+         | EComment Comment
          deriving (Show, Eq, Data, Typeable)
 
-data ExpSeq = ExpSeq [Either Exp Comment] deriving (Show, Eq, Data, Typeable)
+data ExpSeq = ExpSeq [Exp] deriving (Show, Eq, Data, Typeable)
 
 data Iexp = Iexp ExpSeq [ExpSeq] deriving (Show, Eq, Data, Typeable)
 

@@ -38,18 +38,21 @@ instance PrettyPrint Comment where
 -- Expressions pretty printing --    
 
 instance PrettyPrint ExpSeq where
-  pprint (ExpSeq es) = intercalate " " $ map (either pprint pprint) es
+  pprint (ExpSeq es) = intercalate " " $ map pprint es
 
 instance PrettyPrint Exp where
   pprint (ESexp s) = pprint s
   pprint (EAtom a) = pprint a
+  -- TODO : pprint EIexp
+  -- TODO : pprint EInfixexp
+  pprint (EComment c) = pprint c
 
 instance PrettyPrint Sexp where
   pprint (Sexp es) = "(" ++ (pprint es) ++ ")"
 
 
 instance PrettyPrint Program where
-  pprint (Program es) = intercalate "\n" $ map (either pprint pprint) es
+  pprint (Program es) = intercalate "\n" $ map pprint es
 
 
 -- Desugared Parse Tree pretty printing -- 
@@ -59,6 +62,7 @@ instance PrettyPrint CleanProgram where
 
 instance PrettyPrint CleanExp where
   pprint (CleanSexp e) = "(" ++ (intercalate " " $ map pprint e) ++ ")"
+  -- TODO : pprint CleanEAtom
   
 
 -- -- AST pretty printing --

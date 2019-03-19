@@ -39,6 +39,7 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -W
     dependencies:
     - axolotl
 
@@ -51,5 +52,6 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     - -main-is Spec
+    - -W
     dependencies:
     - axolotl

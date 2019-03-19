@@ -76,13 +76,13 @@ exprSpec = do
 
         it "parses a VarId followed by a Literals" $
             parse expr "" "(aB \"hello\")" `shouldParse` (ESexp (Sexp (ExpSeq [
-                    (Left (EAtom (Id (VarId "aB")))),
-                    (Left (EAtom (Literal (StringLit "hello"))))])))
+                    (EAtom (Id (VarId "aB"))),
+                    (EAtom (Literal (StringLit "hello")))])))
         
         it "parses a VarId followed by a Comment" $
             parse expr "" "(aB -- This is a comment\n)" `shouldParse` (ESexp (Sexp (ExpSeq [
-                    (Left (EAtom (Id (VarId "aB")))),
-                    (Right (Comment " This is a comment"))])))
+                    (EAtom (Id (VarId "aB"))),
+                    (EComment (Comment " This is a comment"))])))
 
 sExpSpec = do
     describe "Symbolic Expression parser" $ do
@@ -91,11 +91,11 @@ sExpSpec = do
 
         it "parses an sExp with a recursive sExp and a String Literal" $
             parse sExp "" "((PascalCase 2.0) \"hello\")" `shouldParse` (Sexp (ExpSeq [
-                   (Left (ESexp (Sexp (ExpSeq [
-                       (Left (EAtom (Id (TypeId "PascalCase")))),
-                       (Left (EAtom (Literal (FloatLit "2.0"))))
-                       ])))),
-                   (Left (EAtom (Literal (StringLit "hello"))))]))
+                   (ESexp (Sexp (ExpSeq [
+                       (EAtom (Id (TypeId "PascalCase"))),
+                       (EAtom (Literal (FloatLit "2.0")))
+                       ]))),
+                   (EAtom (Literal (StringLit "hello")))]))
         
 infixExpSpec = do
     describe "Infix Expression parser" $ do
