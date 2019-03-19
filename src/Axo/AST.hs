@@ -1,7 +1,9 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Axo.AST where
 
+import Data.Data
 
 import Axo.ParseTree (
   CleanProgram(..),
@@ -19,16 +21,16 @@ data Lit
   | LitFloat Float
   | LitString String
   | LitChar Char
-  deriving (Show, Eq)
+  deriving (Show, Eq, Data)
 
 data Expr
   = Var Name
   | Type Name
   | Lit Lit
   | App Expr [Expr]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Data)
 
-newtype Program = Program [Expr] deriving (Show, Eq)
+newtype Program = Program [Expr] deriving (Show, Eq, Data)
 
 
 class ToAST p q where

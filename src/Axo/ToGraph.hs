@@ -1,9 +1,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
- module Axo.ToGraph (
-   toGraph,
-   showGraph
+ module Axo.ToGraph
+   ( toGraph
+   , showGraph
+   , ToGraph
    ) where
 
 import Control.Monad.State
@@ -11,6 +12,7 @@ import Data.Either (lefts)
 import Data.Data (Data)
 
 import Axo.ParseTree
+import qualified Axo.AST as AST
 
 -- a node in a graph will have:
 --   a label (not unique, it's the name of the production rule)
@@ -112,7 +114,7 @@ class ToGraph a where
 
 -- TODO, add a terminal node type, and change this one to that type
 instance ToGraph String where
-  toNode x = newNode x
+  toNode x = terminal x
 
 instance ToGraph Literal where
   toNode (IntLit i) = newNode i
@@ -161,12 +163,54 @@ instance ToGraph Program where
   toNode p@(Program es) = (lefts es) `childrenOf` p
     
 
+
+-- AST ToGraph instance
+
+instance ToGraph Int where
+  toNode i = newNode $ show i
+
+instance ToGraph Float where
+  toNode f = newNode $ show f
+
+instance ToGraph Char where
+  toNode c = newNode $ show c
+
+instance ToGraph AST.Lit where
+  toNode (AST.LitInt i) =  terminal $ "int: " ++ show i
+  toNode (AST.LitFloat f) = terminal $ "float: "++ show f
+  toNode (AST.LitString s) = terminal $ "string: "++ show s
+  toNode (AST.LitChar c) = terminal $ "char: " ++ show c
+
+instance ToGraph AST.Expr where
+  toNode (AST.Var v) = terminal v
+  toNode (AST.Type t) = terminal t
+  toNode (AST.Lit l) = toNode l
+  toNode (AST.App func args) = do
+    fNode <- toNode func
+    args `childrenOf'` (return fNode)
+    return fNode
+    
+instance ToGraph AST.Program where
+  toNode p@(AST.Program es) = es `childrenOf` p
+
+
+
+--- Desugar ToGraph Instance
+
+instance ToGraph CleanProgram where
+  toNode p@(CleanProgram es) = es `childrenOf` p
+
+instance ToGraph CleanExp where
+  toNode e@(CleanSexp es) = es `childrenOf` e
+  toNode e@(CleanEAtom a) = e `parentOf` a
+  
+
 initialState = (0, ([], []))
 
-toGraph :: Program -> Graph
+toGraph :: ToGraph g => g -> Graph
 toGraph p = snd $ execState (toNode p) initialState
 
-showGraph g = "digraph graph1 {\n " ++ sg ++ "}"
+showGraph g = "digraph graph1 {\n" ++ sg ++ "}"
   where sg = showsGraph g
 
 showsGraph :: Graph -> String

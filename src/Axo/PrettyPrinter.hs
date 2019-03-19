@@ -1,13 +1,15 @@
 module Axo.PrettyPrinter where
 
 import Axo.ParseTree
-import Axo.Parser
+import qualified Axo.AST as AST
 import Data.List
 
 
 -- this is the pretty printer for the Parser Tree, not the AST
 -- TODO: add AST pretty printing
 
+class PrettyPrint x where
+  pprint :: x -> String
 
 
 -- Token pretty printing --
@@ -45,5 +47,27 @@ instance PrettyPrint Exp where
 instance PrettyPrint Sexp where
   pprint (Sexp es) = "(" ++ (pprint es) ++ ")"
 
-class PrettyPrint x where
-  pprint :: x -> String
+
+instance PrettyPrint Program where
+  pprint (Program es) = intercalate "\n" $ map (either pprint pprint) es
+
+
+-- Desugared Parse Tree pretty printing -- 
+
+instance PrettyPrint CleanProgram where
+  pprint (CleanProgram es) = intercalate "\n" $ map pprint es
+
+instance PrettyPrint CleanExp where
+  pprint (CleanSexp e) = "(" ++ (intercalate " " $ map pprint e) ++ ")"
+  
+
+-- -- AST pretty printing --
+
+instance PrettyPrint AST.Lit where
+  pprint = show
+
+instance PrettyPrint AST.Expr where
+  pprint = show
+
+instance PrettyPrint AST.Program where
+  pprint = show
