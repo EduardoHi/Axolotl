@@ -121,16 +121,13 @@ program = Program <$> (many $ L.nonIndented scn topLevelExps)
 
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') sexpseq <?> "Sexpression"
-  where sexpseq = ExpSeq <$> (L.lineFold scn $ \sp -> expr `sepBy1` try sp <* scn)
+  where sexpseq = ExpSeq <$> (L.lineFold scn $ \sp -> expr `sepBy1` (try sp <|> scn))
 
 expSeq :: Parser ExpSeq
 expSeq = ExpSeq <$> many exprComment
 
-exprComment :: Parser (Either Exp Comment)         
-exprComment = lexeme $ (Right <$> comment) <|> (Left <$> expr)
-
 expr :: Parser Exp
-expr = lexeme $ (EComment <$> comment)
+expr = lexeme $ (EComment <$> try comment)
        <|> (ESexp <$> sExp)
        <|> (EInfixexp <$> infixExp)
        <|> (EAtom <$> atom)

@@ -49,9 +49,9 @@ genVarId = VarId <$> oneof [ onlySymbols, onlyAlphaNum ]
            where onlyAlphaNum = do
                    k <- choose (0,14)
                    (:) <$> genLowerChar <*> (vectorOf k genAlphaNumChar)
-                 onlySymbols = do
+                 onlySymbols = (do
                    k <- choose (1,4)
-                   vectorOf k $ elements $ punctuation++"\\"
+                   vectorOf k $ elements $ punctuation++"\\") `suchThat` (/="--")
 
 genTypeId :: Gen Identifier
 genTypeId = TypeId <$> do
