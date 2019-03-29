@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78d4e9d390d0dd4967f5e7d9bf573797320416c57f8027953e70b12efb3d6188
+-- hash: 1e6f52e6bbc980d196545ae12cef320a1a15a5f8543ac72c85af773d58ad365f
 
 name:           axolotl
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       Axo.AST
       Axo.Desugar
+      Axo.Eval
       Axo.Parser
       Axo.ParseTree
       Axo.PrettyPrinter
@@ -46,11 +47,13 @@ library
     , megaparsec
     , mtl
     , pretty
+    , repline
   default-language: Haskell2010
 
 executable axolotl-exe
   main-is: Main.hs
   other-modules:
+      Interpreter
       Paths_axolotl
   hs-source-dirs:
       app
@@ -65,6 +68,7 @@ executable axolotl-exe
     , megaparsec
     , mtl
     , pretty
+    , repline
   default-language: Haskell2010
 
 test-suite axolotl-test
@@ -90,4 +94,5 @@ test-suite axolotl-test
     , megaparsec
     , mtl
     , pretty
+    , repline
   default-language: Haskell2010

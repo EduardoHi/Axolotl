@@ -28,6 +28,7 @@ dependencies:
 - QuickCheck
 - containers
 - pretty
+- repline
 
 library:
   source-dirs: src

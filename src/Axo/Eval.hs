@@ -1,5 +1,5 @@
 
-module Eval where
+module Axo.Eval where
 
 import Axo.AST
 
@@ -8,6 +8,12 @@ data Value
   | VFloat Float
   deriving Show
 
+-- Note [Eval Function Application]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- things that are not handled (maybe it should not handle it at all, i.e. this only evaluates correct programs):
+-- if f is not a primitive function,
+-- if there is an incorrect number of args
+-- if the first expr is not a function at all
 
 
 type Env = [Value]
@@ -17,11 +23,7 @@ eval :: Expr -> Value
 eval term = case term of
   (Lit l) -> evalLit l
   -- ...
-  (App (Var f) (a:b:_)) ->
-    -- things this does not handle right now (maybe it should not handle it at all, i.e. this only evaluates correct programs):
-    -- if f is not a primitive function,
-    -- if there is an incorrect number of args
-    -- if the first expr is not a function at all
+  (App (Var f) (a:b:_)) -> -- See Note [Eval Function Application]
     evalPrim f (eval a) (eval b)
 
   where evalLit x = case x of

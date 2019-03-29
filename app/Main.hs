@@ -13,6 +13,8 @@ import Axo.Desugar (desugar)
 import qualified Axo.AST as AST (toAST, Program)
 import Axo.PrettyPrinter (prettyText, Pretty)
 
+import Interpreter(repl)
+
 import Text.Megaparsec(errorBundlePretty)
 
 data Flag
@@ -80,9 +82,14 @@ manErr fs = either reportError
 main :: IO ()
 main = do
   args <- getArgs
-  sourceCode <- if null args
-       then getContents -- from stdin
-       else readFile $ head args -- from a file
+  if null args
+       -- then getContents -- from stdin
+    then repl
+    else compile args
+
+compile :: [String] -> IO ()
+compile args = do
+  sourceCode <- readFile $ head args -- from a file
   steps (flags args) sourceCode
   
 

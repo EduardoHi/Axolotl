@@ -79,6 +79,8 @@ instance Pretty CleanExp where
 
 -- -- AST pretty printing --
 
+-- TODO: Fix this pretty printing to proper pretty printing !! (i.e. should represent code, and not just a show to the data typecc)
+
 instance Pretty AST.Lit where
   pretty = text . show
 
