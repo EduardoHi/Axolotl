@@ -1,0 +1,20 @@
+
+
+1. Diseñar un interprete
+   1. cuáles son los primitivos minimos? (para iniciar, agregar muchos si eso facilita el desarrollo)
+   2. cuáles son las special forms, cuales son las funciones,...
+   3. Sketch a solution in Haskell
+2. Implementar el interprete :: (da seguridad, motivación, guía. Sirve como baseline)
+   1. destilar higher level syntax :: (keywords, type annotations, ...)
+   2. nos forzará a implementar el (macro + type system)
+   3. integrar un repl
+   4. roadmap: eval values and constants, eval functions of 1 argument, multarguments, type checking, macros, type inference.
+3. Diseñar la máquina virtual, y la representación intermedia.
+   1. posibles candidatos para la máquina virtual:
+      1. Register Machine :: (vista en clase)
+      2. Stack Machine :: (vector polaco)
+      3. G Machine :: (ML, Haskell, e.g. "The Implementation of Functional Programming Languages", _revisar la literatura_)
+   2. sketched by the minimal implementation of the interpreter
+   3. ... (necesito leer más)
+4. Implementar el generador de representación intermedia y su respectiva máquina virtual.
+   1. ignorar siempre la eficiencia :: a menos que involucre el mismo esfuerzo de implementación

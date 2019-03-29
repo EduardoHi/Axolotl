@@ -1,0 +1,7 @@
+primitives for int, float and char
+primitives for arithmetic, int and float.
+
+
+<function declaration> = (define <function name> [<type definition>] {<pattern> -> <body>}+
+
+<type definition> = :: <type id> {-> <type id>}*

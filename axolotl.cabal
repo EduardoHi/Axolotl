@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a285ce72ac21363fc6f8795446f33af687c3716afa767b78734d88d580f83510
+-- hash: 78d4e9d390d0dd4967f5e7d9bf573797320416c57f8027953e70b12efb3d6188
 
 name:           axolotl
 version:        0.1.0.0
@@ -45,6 +45,7 @@ library
     , hspec-megaparsec
     , megaparsec
     , mtl
+    , pretty
   default-language: Haskell2010
 
 executable axolotl-exe
@@ -63,6 +64,7 @@ executable axolotl-exe
     , hspec-megaparsec
     , megaparsec
     , mtl
+    , pretty
   default-language: Haskell2010
 
 test-suite axolotl-test
@@ -87,4 +89,5 @@ test-suite axolotl-test
     , hspec-megaparsec
     , megaparsec
     , mtl
+    , pretty
   default-language: Haskell2010

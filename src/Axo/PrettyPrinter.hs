@@ -1,77 +1,86 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Axo.PrettyPrinter where
 
 import Axo.ParseTree
 import qualified Axo.AST as AST
 import Data.List
+import Text.PrettyPrint
+import Prelude hiding ((<>))
 
 
 -- this is the pretty printer for the Parser Tree, not the AST
 -- TODO: add AST pretty printing
 
-class PrettyPrint x where
-  pprint :: x -> String
+class Pretty x where
+  pretty :: x -> Doc
 
+
+prettyText :: Pretty a => a -> String
+prettyText = render . pretty
 
 -- Token pretty printing --
 
-instance PrettyPrint Atom where
-  pprint a = case a of
-    (Id i) -> pprint i
-    (Literal l) -> pprint l
+instance Pretty Atom where
+  pretty a = case a of
+    (Id i) -> pretty i
+    (Literal l) -> pretty l
 
-instance PrettyPrint Literal where
-  pprint l = case l of
-    (IntLit s) -> s
-    (FloatLit s) -> s
-    (StringLit s) -> (show s)
-    (CharLit c) -> show c
+instance Pretty Literal where
+  pretty l = case l of
+    (IntLit s) -> text s
+    (FloatLit s) -> text s
+    (StringLit s) -> text $ show s
+    (CharLit c) -> text $ show c
 
-instance PrettyPrint Identifier where
-  pprint i = case i of
-    (VarId v) -> v
-    (TypeId t) -> t
+instance Pretty Identifier where
+  pretty i = case i of
+    (VarId v) -> text v
+    (TypeId t) -> text t
 
-instance PrettyPrint Comment where
-  pprint (Comment c) = "--" ++ c ++ "\n"
+instance Pretty Comment where
+  pretty (Comment c) = (text "--") <> (text c) <> (text "\n")
 
 
 -- Expressions pretty printing --    
 
-instance PrettyPrint ExpSeq where
-  pprint (ExpSeq es) = intercalate " " $ map pprint es
+instance Pretty ExpSeq where
+  pretty (ExpSeq []) = error "ExpSequence should not be empty"
+  pretty (ExpSeq (e:es)) = pretty e <+> (nest 4 $ sep $ map pretty es)
 
-instance PrettyPrint Exp where
-  pprint (ESexp s) = pprint s
-  pprint (EAtom a) = pprint a
-  -- TODO : pprint EIexp
-  -- TODO : pprint EInfixexp
-  pprint (EComment c) = pprint c
+instance Pretty Exp where
+  pretty (ESexp s) = pretty s
+  pretty (EAtom a) = pretty a
+  pretty (EIexp _) = ""
+  pretty (EInfixexp _) = ""
+  -- TODO : pretty EIexp
+  -- TODO : pretty EInfixexp
+  pretty (EComment c) = pretty c
 
-instance PrettyPrint Sexp where
-  pprint (Sexp es) = "(" ++ (pprint es) ++ ")"
+instance Pretty Sexp where
+  pretty (Sexp es) = parens (pretty es)
 
 
-instance PrettyPrint Program where
-  pprint (Program es) = intercalate "\n" $ map pprint es
+instance Pretty Program where
+  pretty (Program es) = vcat $ map pretty es
 
 
 -- Desugared Parse Tree pretty printing -- 
 
-instance PrettyPrint CleanProgram where
-  pprint (CleanProgram es) = intercalate "\n" $ map pprint es
+instance Pretty CleanProgram where
+  pretty (CleanProgram es) = vcat $ map pretty es
 
-instance PrettyPrint CleanExp where
-  pprint (CleanSexp e) = "(" ++ (intercalate " " $ map pprint e) ++ ")"
-  -- TODO : pprint CleanEAtom
-  
+instance Pretty CleanExp where
+  pretty (CleanSexp []) = error "CleanSexp should not be empty"
+  pretty (CleanSexp (e:es)) = parens (pretty e <+> (nest 4 $ hsep $ map pretty es))
+  pretty (CleanEAtom a) = pretty a
 
 -- -- AST pretty printing --
 
-instance PrettyPrint AST.Lit where
-  pprint = show
+instance Pretty AST.Lit where
+  pretty = text . show
 
-instance PrettyPrint AST.Expr where
-  pprint = show
+instance Pretty AST.Expr where
+  pretty = text . show
 
-instance PrettyPrint AST.Program where
-  pprint = show
+instance Pretty AST.Program where
+  pretty = text . show

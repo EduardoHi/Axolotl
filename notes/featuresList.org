@@ -2,8 +2,8 @@
 * TODO Features Wishlist
 
 
-** TODO Infix Syntax
-** TODO Indent Syntax
+** DONE Infix Syntax
+** DONE Indent Syntax
 *** TODO variable indent (same block indent level)
 ** TODO Macros
 ** TODO Type System
@@ -13,9 +13,9 @@
 **** Sum types
 **** Product types
 **** recursive types
-*** TODO type classes
-*** TODO polymorphism
 *** TODO monomorphism
+*** TODO polymorphism
+*** TODO type classes
 ** TODO Pattern Matching
 ** TODO Evaluation
 *** TODO laziness

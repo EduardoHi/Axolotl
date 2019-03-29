@@ -27,6 +27,7 @@ dependencies:
 - hspec-megaparsec
 - QuickCheck
 - containers
+- pretty
 
 library:
   source-dirs: src

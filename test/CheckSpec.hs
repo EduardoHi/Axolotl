@@ -46,8 +46,8 @@ checkSpec = do
 
 -- | genSpec needs a name, a generator, a parser and a pretty printer,
 -- | all of which must act on the same type
-genSpec :: (Show a, Eq a, PrettyPrint a) => String -> (Gen a) -> (Parser a) -> SpecWith ()
+genSpec :: (Show a, Eq a, Pretty a) => String -> (Gen a) -> (Parser a) -> SpecWith ()
 genSpec name gen parser = do
     it ("parsing "++name++" is the inverse of pretty printing it") $ forAll gen $
-      (\x -> (parse parser "" (pprint x)) === (Right x))
+      (\x -> (parse parser "" (prettyText x)) === (Right x))
   

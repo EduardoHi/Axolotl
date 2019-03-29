@@ -147,7 +147,7 @@ indentExp :: Parser Iexp
 indentExp = (uncurry Iexp) <$> L.indentBlock space p
   where
     p = do
-      header <- iexpseq -- (:) <$> (Left . EAtom <$> identifier) <*> expSeq
+      header <- iexpseq
       return (L.IndentSome Nothing (return . (header, )) expSeq)
     iexpseq = ExpSeq <$> ( (:) <$> (EAtom <$> (lexeme identifier)) <*> (many expr))
 

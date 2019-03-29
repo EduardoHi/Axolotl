@@ -11,7 +11,7 @@ import Axo.Parser (parseProgram, ParseError)
 import Axo.ToGraph (showGraph, toGraph, ToGraph)
 import Axo.Desugar (desugar)
 import qualified Axo.AST as AST (toAST, Program)
-import Axo.PrettyPrinter (pprint, PrettyPrint)
+import Axo.PrettyPrinter (prettyText, Pretty)
 
 import Text.Megaparsec(errorBundlePretty)
 
@@ -45,18 +45,19 @@ toFlag s = case s of
 flags :: [String] -> Flags
 flags = S.fromList . (map toFlag) . (filter $ isPrefixOf "-")
 
-outputs :: (ToGraph a, Show a, PrettyPrint a) => [(Flag, a -> String)]
+outputs :: (ToGraph a, Show a, Pretty a) => [(Flag, a -> String)]
 outputs =
   [ (OGraph, showGraph . toGraph)
   , (OHaskellData, show)
-  , (OAxolotlSrc, pprint)
+  , (OAxolotlSrc, prettyText)
   ]
-
+  
 toDesugared :: Program -> Either ParseError CleanProgram
 toDesugared p = Right $ desugar p
 
 runToAST :: CleanProgram -> Either ParseError AST.Program
 runToAST p = Right $ AST.toAST p
+
 
 upToParse = parseProgram
 upToDesugar = upToParse >=> toDesugared
@@ -84,3 +85,4 @@ main = do
        else readFile $ head args -- from a file
   steps (flags args) sourceCode
   
+
