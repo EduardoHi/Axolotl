@@ -1,13 +1,14 @@
 module CheckSpec where
 
 
-
+import Data.List
 import Test.Hspec
 import Test.QuickCheck
 
 import Text.Megaparsec
   
 import Axo.Parser
+import Axo.ParseTree
 import Axo.PrettyPrinter
 import Gen
 
@@ -42,7 +43,12 @@ checkSpec = do
     genSpec "expression" boundedExp expr
     genSpec "a sequence of expressions" boundedExpSeq expSeq
     genSpec "s-expression" boundedSexp sExp
+    
 
+-- this is a test for the generator itself
+  describe "var id generator" $ do
+    it "does not generate var ids with \"--\" inside" $ forAll genVarId $ 
+      (\(VarId x) -> (not $ isInfixOf "--" x))
 
 -- | genSpec needs a name, a generator, a parser and a pretty printer,
 -- | all of which must act on the same type

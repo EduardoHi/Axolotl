@@ -1,5 +1,6 @@
 module Gen where 
 
+import Data.List
 import Test.QuickCheck
 
 import Axo.ParseTree
@@ -51,7 +52,7 @@ genVarId = VarId <$> oneof [ onlySymbols, onlyAlphaNum ]
                    (:) <$> genLowerChar <*> (vectorOf k genAlphaNumChar)
                  onlySymbols = (do
                    k <- choose (1,4)
-                   vectorOf k $ elements $ punctuation++"\\") `suchThat` (/="--")
+                   vectorOf k $ elements $ punctuation++"\\") `suchThat` (not . (isInfixOf "--"))
 
 genTypeId :: Gen Identifier
 genTypeId = TypeId <$> do

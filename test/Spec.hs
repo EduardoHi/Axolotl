@@ -3,15 +3,18 @@ module Spec where
 
 -- QuickCheck Specs
 import CheckSpec
-
+import Gen
 import LexerSpec
 import ParserSpec
-
-
 import DesugarSpec
-  
+
+import Axo.Parser
+import Axo.PrettyPrinter
+
 import Test.Hspec
-  
+import Test.QuickCheck
+import Text.Megaparsec
+
 
 -- Workflow to add more specs:
 -- 1. decide where the spec should live, e.g. if it's a lexer spec, add it on LexerSpec.hs
@@ -20,4 +23,11 @@ import Test.Hspec
 
 
 main :: IO ()
-main = hspec (lexerSpec >> parserSpec >> desugarSpec >> checkSpec)
+main = hspec (lexerSpec >> parserSpec >> desugarSpec >> checkSpec) >> roundTrip
+    where
+        roundTrip :: IO ()
+        roundTrip =
+            quickCheckWith stdArgs { maxSuccess = 4000 } $
+            -- TODO: remove boundedExp and change for program
+            forAll boundedExp $ \expression ->
+            (parse expr "" (pprint expression)) === (Right expression)

@@ -11,6 +11,15 @@ import Axo.ParseTree
 
 -- elements to build test cases
 int123 = Literal (IntLit "123")
+stringInfix = (InfixExp 
+                        (EAtom (Id (VarId "x"))) 
+                        (EAtom (Id (VarId "="))) 
+                        (EAtom (Literal (IntLit "3"))))
+                        
+stringSExp = (CleanSexp [
+                    (CleanEAtom (Id (VarId "="))),
+                    (CleanEAtom (Id (VarId "x"))),
+                    (CleanEAtom (Literal (IntLit "3")))])
 
 desugarSpec :: Spec
 desugarSpec = do
@@ -22,7 +31,6 @@ desugarSpec = do
            `shouldBe`
            CleanProgram [CleanEAtom int123]
 
-
     context "Indent expression desugaring" $ do
       it "desugars to a sexp" $ do
         pending
@@ -33,12 +41,12 @@ desugarSpec = do
 
     context "Infix expression desugaring" $ do
       it "desugars to a sexp" $ do
-        pending
+        desugar stringInfix
+          `shouldBe` stringSExp
 
     context "Sexp desugaring" $ do
       it "desugars to a clean sexp(it's subexpressions desugared)" $ do
         pending
-
 
     context "Expression desugaring" $ do
       it "desugars a sexp" $ do

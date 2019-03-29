@@ -19,10 +19,12 @@ type ParseError = ParseErrorBundle String Void
 
 -------- Lexer --------
 
+-- Consumes only space characters
 sc :: Parser ()
 sc = L.space (void $ takeWhile1P Nothing f) empty empty
   where f ch = ch == ' '
 
+--  Consumes all white spaces
 scn :: Parser ()
 scn = L.space space1 empty empty  
 
@@ -105,7 +107,7 @@ charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
 
 -- | a comment line starts with -- and ends with a '\n', inbetween can be anything
 comment :: Parser Comment
-comment = lexeme $ (Comment <$> between (string "--") (char '\n') inside <?> "Comment")
+comment = (Comment <$> between (string "--") (char '\n') inside <?> "Comment")
   where inside = many $ noneOf ['\n']
 
 -------- Parser --------
@@ -118,27 +120,34 @@ program = Program <$> (many $ L.nonIndented scn topLevelExps)
                        (ESexp <$> sExp) <|>
                        (EComment <$> comment)
                        
-
 sExp :: Parser Sexp
-sExp = Sexp <$> between (char '(') (char ')') sexpseq <?> "Sexpression"
-  where sexpseq = ExpSeq <$> (L.lineFold scn $ \sp -> expr `sepBy1` (try sp <|> scn))
+sExp = Sexp <$> between (char '(') (char ')') expSeqLn <?> "Sexpression"
+
+expSeqLn :: Parser ExpSeq
+expSeqLn = ExpSeq <$> (some exprLn)
 
 expSeq :: Parser ExpSeq
-expSeq = ExpSeq <$> many exprComment
+expSeq = ExpSeq <$> (some (try exprSp <|> (expr <* (notFollowedBy anySingle))))
 
 expr :: Parser Exp
-expr = lexeme $ (EComment <$> try comment)
+expr = (EComment <$> try comment)
        <|> (ESexp <$> sExp)
        <|> (EInfixexp <$> infixExp)
        <|> (EAtom <$> atom)
        -- TODO: Nested indentExpressions <|> (EIexp <$> indentExp)
 
+exprLn :: Parser Exp
+exprLn = L.lexeme scn expr
+
+exprSp :: Parser Exp
+exprSp = L.lexeme space1 expr
+
 -- for now, infix expressions are only 3 expressions
 infixExp :: Parser InfixExp
 infixExp = (do 
   char '{'
-  e1 <- expr
-  e2 <- expr
+  e1 <- exprSp
+  e2 <- exprSp
   e3 <- expr
   char '}'
   return $ InfixExp e1 e2 e3) <?> "InfixExpression"
