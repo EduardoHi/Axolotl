@@ -50,15 +50,18 @@ instance Pretty ExpSeq where
 instance Pretty Exp where
   pretty (ESexp s) = pretty s
   pretty (EAtom a) = pretty a
-  pretty (EIexp _) = ""
-  pretty (EInfixexp _) = ""
-  -- TODO : pretty EIexp
-  -- TODO : pretty EInfixexp
+  pretty (EIexp i) = pretty i
+  pretty (EInfixexp i) = pretty i
   pretty (EComment c) = pretty c
 
+instance Pretty InfixExp where
+  pretty (InfixExp a b c) = braces $ (pretty a) <+> (pretty b) <+> (pretty c)
+
+instance Pretty Iexp where
+  pretty (Iexp head block) = (pretty head) $+$ (nest 4 $ sep $ map pretty block)
+  
 instance Pretty Sexp where
   pretty (Sexp es) = parens (pretty es)
-
 
 instance Pretty Program where
   pretty (Program es) = vcat $ map pretty es
