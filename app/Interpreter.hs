@@ -35,4 +35,3 @@ ini = liftIO $ putStrLn "Welcome to the Axolotl Interpreter!"
 
 repl :: IO ()
 repl = evalRepl (pure "Axo λ> ") cmd options (Just ':') (Word completer) ini
-  

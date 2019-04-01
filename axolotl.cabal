@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1e6f52e6bbc980d196545ae12cef320a1a15a5f8543ac72c85af773d58ad365f
+-- hash: bc7902ab9cebdae9903075ae3472c5fbef9846b34b56e3119f385224c1d8f70b
 
 name:           axolotl
 version:        0.1.0.0
@@ -53,6 +53,8 @@ library
 executable axolotl-exe
   main-is: Main.hs
   other-modules:
+      Compiler
+      Flags
       Interpreter
       Paths_axolotl
   hs-source-dirs:

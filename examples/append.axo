@@ -13,5 +13,10 @@
 define (append {x : xs} ys)
   {x : (append ys xs)}
 
+
+(define append :: {(List a) -> {(List a) -> (List a)}}
+    Nil ys -> ys
+    {x : xs} ys -> {x : (append ys xs)})
+
 -- (infixr ++)
 -- (define ++ append)

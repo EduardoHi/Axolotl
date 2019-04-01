@@ -163,6 +163,8 @@ literal = (try floatLit) <|> intLit <|> stringLit <|> charLit <?> "Literal"
 parseProgram :: String -> Either ParseError Program
 parseProgram input = parse program "Axolotl" input
 
+parseProgram' :: String -> Either String Program
+parseProgram' input = either (Left . errorBundlePretty) (Right . id) $ parse program "Axolotl" input
 
 -- | tihs function runs the parser, but also recieve a function f
 -- | that indicates what to do with the result of parsing `Program`

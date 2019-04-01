@@ -5,6 +5,7 @@
    ( toGraph
    , showGraph
    , ToGraph
+   , toNode
    ) where
 
 import Control.Monad.State
