@@ -2,7 +2,7 @@ module Main where
 
 import System.Environment
 
-import Compiler(runCompilerM, pipeline, emptyState, CompilerState(..))
+import Compiler(runCompilerM, loadModule, emptyState, CompilerState(..))
 
 import Interpreter(repl)
 
@@ -19,10 +19,12 @@ compile :: [String] -> IO ()
 compile args = do
   let filename = head args
   sourceCode <- readFile $ filename
-  let initialState =  emptyState {_flags = (flags args), _filename = (takeWhile (/='.') filename)}
-  (res,_) <- runCompilerM (pipeline sourceCode) initialState
+  let initialState =  emptyState
+        { _flags = (flags args)
+        , _filename = (takeWhile (/='.') filename)
+        }
+  (res,finalState) <- runCompilerM (loadModule sourceCode) initialState
   case res of
     Left err -> putStrLn err
-    _ -> return ()
-  -- print finalState
+    _ -> print res
   return ()

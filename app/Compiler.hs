@@ -8,11 +8,11 @@ import Control.Monad.Except
 import Control.Monad.State
 
 import Axo.PrettyPrinter (prettyText, Pretty, pretty)
-import Axo.Parser (parseProgram')
+import Axo.Parser (parseProgram, parseExpr)
 import Axo.ToGraph (showGraph, toGraph, ToGraph, toNode)
-import Axo.ParseTree (Program, CleanProgram)
+import Axo.ParseTree (Program(..), CleanProgram(..), CleanExp)
 import Axo.Desugar (desugar)
-import qualified Axo.AST as AST (toAST, Program)
+import qualified Axo.AST as AST (toAST, Program(..), Expr)
 
 import Flags
 
@@ -20,22 +20,7 @@ data Phase
   = PAst AST.Program
   | PDesugar CleanProgram
   | PSt Program
-
-instance ToGraph Phase where
-  toNode (PAst a) = toNode a
-  toNode (PDesugar d) = toNode d
-  toNode (PSt s) = toNode s
-
-instance Show Phase where
-  show (PAst a) = show a
-  show (PDesugar d) = show d
-  show (PSt s) = show s
-
-instance Pretty Phase where
-  pretty (PAst a) = pretty a
-  pretty (PDesugar d) = pretty d
-  pretty (PSt s) = pretty s
-
+  deriving (Show)
 
 data CompilerState = CompilerState
   {  _filename :: String
@@ -81,15 +66,24 @@ inIO :: IO a -> CompilerM a
 inIO = Compiler . liftIO
 
 ifFlag :: Flag -> CompilerM a -> CompilerM ()
-ifFlag flag m = do 
+ifFlag flag m = do
   flags <- gets _flags
   when (flags `isSet` flag) (void m)
 
 
-pipeline :: String -> CompilerM AST.Program
-pipeline s = do
+loadExpr :: String -> CompilerM AST.Expr
+loadExpr s = do
   modify (\x -> x {_source = s})
-  a <- tParse >>= tDesugar >>= tAST
+  (CleanProgram e) <- tParseE >>= tDesugar
+  case e of
+    [] -> throwError "Empty Program"
+    _  -> tExp (head e)
+
+loadModule :: String -> CompilerM AST.Program
+loadModule s = do
+  modify (\x -> x {_source = s})
+  a <- tParseP >>= tDesugar >>= tAST
+  --- later phases here might be Intermediate Representation, CodeGen, etc.
   phase <- choosePhase
   case phase of
     Just p -> case p of
@@ -109,20 +103,35 @@ tDesugar p = do
   modify (\x -> x {_desugared = Just desugared})
   return desugared
 
+tExp :: CleanExp -> CompilerM AST.Expr
+tExp e = do
+  let ast = AST.toAST e
+  modify (\x -> x {_ast = Just (AST.Program [ast])})
+  return ast
+
 tAST :: CleanProgram -> CompilerM AST.Program
 tAST p = do
   let ast = AST.toAST p
   modify (\x -> x {_ast = Just ast})
   return ast
 
-tParse :: CompilerM Program
-tParse = do
+tParseP :: CompilerM Program
+tParseP = do
   src <- gets _source
-  case parseProgram' src of
+  case parseProgram src of
     Left e -> throwError e
     Right st -> do
       modify (\x -> x {_st = Just st})
       return st
+
+tParseE :: CompilerM Program
+tParseE = do
+  src <- gets _source
+  case parseExpr src of
+    Left e -> throwError e
+    Right st -> do
+      modify (\x -> x {_st = Just (Program [st])})
+      return (Program [st])
 
 graphOut :: ToGraph t => t -> CompilerM ()
 graphOut x = genericOut x (showGraph . toGraph) ".dot"
@@ -145,7 +154,7 @@ choosePhase = do
   a  <- gets _ast
   d  <- gets _desugared
   s <- gets _st
-  let isOn = isSet flags  
+  let isOn = isSet flags
   return $ case (isOn SAst, isOn SDesugar, isOn SParse) of
            (True,_,_) -> PAst <$> a
            (_,True,_) -> PDesugar <$> d

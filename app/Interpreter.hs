@@ -6,14 +6,31 @@ import Data.List
 import System.Console.Repline
 
 
+import Compiler (emptyState, runCompilerM, loadExpr, CompilerState)
+
 import Axo.Eval
 
+data InterpreterState = InterpreterState
+  { _env :: Env
+  }
 
-type Repl a = HaskelineT IO a
+initialState = InterpreterState emptyEnv
+
+type Repl a = HaskelineT (StateT InterpreterState IO) a
 
 -- Evaluation : handle each line user inputs
 cmd :: String -> Repl ()
-cmd input = liftIO $ print input
+cmd input = do
+  env <- gets _env
+
+  liftIO $ do
+    (res,finalState) <- runCompilerM (loadExpr input) emptyState
+    case res of
+      Left err -> putStrLn err
+      Right x  -> do
+        putStrLn $ "debug: "++(show x)
+        print $ eval env x
+
 
 -- Tab Completion: return a completion for partial words entered
 completer :: Monad m => WordCompleter m
@@ -34,4 +51,5 @@ ini :: Repl ()
 ini = liftIO $ putStrLn "Welcome to the Axolotl Interpreter!"
 
 repl :: IO ()
-repl = evalRepl (pure "Axo λ> ") cmd options (Just ':') (Word completer) ini
+repl = flip evalStateT initialState $
+       evalRepl (pure "Axo λ> ") cmd options (Just ':') (Word completer) ini
