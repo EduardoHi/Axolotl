@@ -30,4 +30,4 @@ main = hspec (lexerSpec >> parserSpec >> desugarSpec >> checkSpec) >> roundTrip
             quickCheckWith stdArgs { maxSuccess = 4000 } $
             -- TODO: remove boundedExp and change for program
             forAll boundedExp $ \expression ->
-            (parse expr "" (pprint expression)) === (Right expression)
+            (parse expr "" (prettyText expression)) === (Right expression)

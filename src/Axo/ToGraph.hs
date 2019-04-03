@@ -113,7 +113,9 @@ class ToGraph a where
 
 -- TODO, add a terminal node type, and change this one to that type
 instance ToGraph String where
-  toNode x = terminal x
+  toNode x = terminal $ escape x
+    -- | escape \ char to \\. this is a escaping to make graphviz happy
+    where escape = concatMap (\c -> if c == '\\' then "\\\\" else [c])
 
 instance ToGraph Literal where
   toNode (IntLit i) = newNode i
@@ -183,8 +185,8 @@ instance ToGraph AST.Lit where
   toNode (AST.LitChar c) = terminal $ "char: " ++ show c
 
 instance ToGraph AST.Expr where
-  toNode (AST.Var v) = terminal v
-  toNode (AST.Type t) = terminal t
+  toNode (AST.Var v) = toNode v
+  toNode (AST.Type t) = toNode t
   toNode (AST.Lit l) = toNode l
   toNode (AST.App func args) = do
     fNode <- toNode func
