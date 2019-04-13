@@ -6,7 +6,7 @@ import Data.List
 import System.Console.Repline
 
 
-import Compiler (emptyState, runCompilerM, loadExpr, CompilerState)
+import Compiler (emptyState, runCompilerM, loadExpr)
 
 import Axo.Eval
 
@@ -22,14 +22,15 @@ type Repl a = HaskelineT (StateT InterpreterState IO) a
 cmd :: String -> Repl ()
 cmd input = do
   env <- gets _env
-
-  liftIO $ do
-    (res,finalState) <- runCompilerM (loadExpr input) emptyState
-    case res of
-      Left err -> putStrLn err
-      Right x  -> do
-        putStrLn $ "debug: "++(show x)
-        print $ eval env x
+  (res, _) <- liftIO $ runCompilerM (loadExpr input) emptyState -- second tuple element is the final state
+  case res of
+    Left err -> liftIO $ putStrLn err
+    Right x  -> do
+      let (val,env') = runEval env x
+      put $ InterpreterState {_env = env'}
+      liftIO $ do
+        putStrLn $ "parsed: " ++ (show x)
+        putStrLn $ "evaluated: " ++ (show $ val)
 
 
 -- Tab Completion: return a completion for partial words entered
@@ -42,9 +43,15 @@ completer n = do
 help :: [String] -> Repl ()
 help args = liftIO $ print $ "Help: " ++ show args
 
+-- | print the current environment and it's bindings
+env :: [String] -> Repl ()
+env _ = do
+  env <- gets _env
+  liftIO $ print env
 
 options :: [(String, [String] -> Repl ())]
 options = [ ("help", help)  -- :help
+          , ("env", env)    -- :env
           ]
 
 ini :: Repl ()

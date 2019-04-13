@@ -7,9 +7,9 @@ import qualified Data.Set as S
 import Control.Monad.Except
 import Control.Monad.State
 
-import Axo.PrettyPrinter (prettyText, Pretty, pretty)
+import Axo.PrettyPrinter (prettyText, Pretty)
 import Axo.Parser (parseProgram, parseExpr)
-import Axo.ToGraph (showGraph, toGraph, ToGraph, toNode)
+import Axo.ToGraph (showGraph, toGraph, ToGraph)
 import Axo.ParseTree (Program(..), CleanProgram(..), CleanExp)
 import Axo.Desugar (desugar)
 import qualified Axo.AST as AST (toAST, Program(..), Expr)

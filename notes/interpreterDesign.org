@@ -1,7 +1,13 @@
-primitives for int, float and char
-primitives for arithmetic, int and float.
+
+* Primitives
+- primitives for int, float and char
+- primitives for arithmetic, int and float.
 
 
-<function declaration> = (define <function name> [<type definition>] {<pattern> -> <body>}+
+* Function Declaration
 
-<type definition> = :: <type id> {-> <type id>}*
+<function declaration> = (define <function name> [<type definition>] {(<pattern> -> <body>)}+)
+
+<type definition> = :: (<type id> {-> <type id>})*
+
+

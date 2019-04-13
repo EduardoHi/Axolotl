@@ -107,18 +107,18 @@ charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
 
 -- | a comment line starts with -- and ends with a '\n', inbetween can be anything
 comment :: Parser Comment
-comment = (Comment <$> between (string "--") (char '\n') inside <?> "Comment")
+comment = (Comment <$> between (string "--") eol inside <?> "Comment")
   where inside = many $ noneOf ['\n']
 
 -------- Parser --------
 
 -- The toplevel definition of a program
 program :: Parser Program
-program = Program <$> (many $ L.nonIndented scn topLevelExps)
-  where topLevelExps = (EIexp <$> indentExp) <|>
+program = Program <$> (many $ L.nonIndented scn topLevelExps) <* eof
+  where topLevelExps = (EComment <$> comment) <|>
                        (EInfixexp <$> infixExp) <|>
                        (ESexp <$> sExp) <|>
-                       (EComment <$> comment)
+                       (EIexp <$> indentExp)
                        
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeqLn <?> "Sexpression"
@@ -144,7 +144,7 @@ exprSp = L.lexeme space1 expr
 
 -- for now, infix expressions are only 3 expressions
 infixExp :: Parser InfixExp
-infixExp = (do 
+infixExp = (do
   char '{'
   e1 <- exprSp
   e2 <- exprSp
@@ -152,8 +152,11 @@ infixExp = (do
   char '}'
   return $ InfixExp e1 e2 e3) <?> "InfixExpression"
 
+-- TODO: documentation for indentBlock says that: "Tokens must not consume newlines after them.
+-- On the other hand, the first argument of this function must consume newlines among other white space characters."
+-- let's check tokens do not consume newlines
 indentExp :: Parser Iexp
-indentExp = (uncurry Iexp) <$> L.indentBlock space p
+indentExp = (uncurry Iexp) <$> L.indentBlock scn p
   where
     p = do
       header <- iexpseq

@@ -2,7 +2,7 @@
 
 
 define (concatHello str)
-    {"hello" ++ str}
+  {"hello" ++ str}
 
 define main
   (let (contents (readLn))
