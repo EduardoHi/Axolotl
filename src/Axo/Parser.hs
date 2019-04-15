@@ -119,7 +119,7 @@ program = Program <$> (many $ L.nonIndented scn topLevelExps) <* eof
                        (EInfixexp <$> infixExp) <|>
                        (ESexp <$> sExp) <|>
                        (EIexp <$> indentExp)
-                       
+
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeqLn <?> "Sexpression"
 

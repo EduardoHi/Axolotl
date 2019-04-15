@@ -97,24 +97,28 @@ loadModule s = do
           ifFlag OHaskellData $ haskellDataOut x
           ifFlag OAxolotlSrc $ axolotlSrcOut x
 
+-- | Desugars the parsed program
 tDesugar :: Program -> CompilerM CleanProgram
 tDesugar p = do
   let desugared = desugar p
   modify (\x -> x {_desugared = Just desugared})
   return desugared
 
+-- | Transforms a clean expression to an AST
 tExp :: CleanExp -> CompilerM AST.Expr
 tExp e = do
   let ast = AST.toAST e
   modify (\x -> x {_ast = Just (AST.Program [ast])})
   return ast
 
+-- | Transforms a clean Program to an AST
 tAST :: CleanProgram -> CompilerM AST.Program
 tAST p = do
   let ast = AST.toAST p
   modify (\x -> x {_ast = Just ast})
   return ast
 
+-- | Parses a Program from source
 tParseP :: CompilerM Program
 tParseP = do
   src <- gets _source
@@ -124,6 +128,7 @@ tParseP = do
       modify (\x -> x {_st = Just st})
       return st
 
+-- | Parses an Expression from source, returns a Program with only that expression
 tParseE :: CompilerM Program
 tParseE = do
   src <- gets _source
@@ -133,12 +138,15 @@ tParseE = do
       modify (\x -> x {_st = Just (Program [st])})
       return (Program [st])
 
+-- | graph viz format output to a file
 graphOut :: ToGraph t => t -> CompilerM ()
 graphOut x = genericOut x (showGraph . toGraph) ".dot"
 
+-- | haskell data format output to a file
 haskellDataOut :: (Show t) => t -> CompilerM ()
 haskellDataOut field = genericOut field show ".data.hs"
 
+-- | axolotl source format output to a file. Basically a pretty printer
 axolotlSrcOut :: (Pretty t) => t -> CompilerM ()
 axolotlSrcOut field = genericOut field prettyText ".pretty.axo"
 

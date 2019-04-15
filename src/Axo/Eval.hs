@@ -42,8 +42,8 @@ eval term = do
   case term of
     (Lit l) -> evalLit l
     (Var v) -> evalVar env v
-    (Type t) -> return $ if t == "True" then (VBool True) else (VBool False) -- UGLY HACK should evaluate then check, it needs boolean primitives first (eq, and, or, not)
-    (App (Var "define") rest) ->
+    (Type t) -> return $ if t == "True" then (VBool True) else (VBool False) -- UGLY HACK, should
+    (App (Var "define") rest) -> -- (define add2 x -> {x + 2})
       evalDefine env rest
     (App (Var "if") rest) -> -- (if condition if-true if-false)
       evalIf rest
@@ -113,10 +113,6 @@ evalApp e1 e2 = do
       put $ env
       return res
     _ -> error "object not applicable"
-  
-  -- let VClosure an c env' = eval env e1 in
-  --   let v = eval env e2 in
-  --     eval (extend env' an v) c
 
 
 evalPrim :: String -> BinOp
