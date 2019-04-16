@@ -18,7 +18,7 @@ data Type
 
 type Env = Map.Map String Type
 
-extend :: Env -> String -> Type -> Env
+-- extend :: Env -> String -> Type -> Env
 
 data TypeError
   = Mismatch [Type] [Type]

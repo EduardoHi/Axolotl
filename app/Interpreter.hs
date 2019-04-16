@@ -3,6 +3,7 @@ module Interpreter where
 
 import Control.Monad.State.Strict
 import Data.List
+import qualified Data.Map as Map
 import System.Console.Repline
 
 
@@ -46,8 +47,8 @@ help args = liftIO $ print $ "Help: " ++ show args
 -- | print the current environment and it's bindings
 env :: [String] -> Repl ()
 env _ = do
-  env <- gets _env
-  liftIO $ print env
+  currentEnv <- gets _env
+  liftIO $ mapM_ (\(k,v) -> putStrLn $ k ++ ": " ++ (show v)) $ Map.mapWithKey (,) currentEnv
 
 options :: [(String, [String] -> Repl ())]
 options = [ ("help", help)  -- :help

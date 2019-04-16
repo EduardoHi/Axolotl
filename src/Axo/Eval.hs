@@ -41,61 +41,44 @@ eval term = do
   env <- get
   case term of
     (Lit l) -> evalLit l
-    (Var v) -> evalVar env v
-    (Type t) -> return $ if t == "True" then (VBool True) else (VBool False) -- UGLY HACK, should
-    (App (Var "define") rest) -> -- (define add2 x -> {x + 2})
-      evalDefine env rest
-    (App (Var "if") rest) -> -- (if condition if-true if-false)
-      evalIf rest
-    (App (Var "\\") rest) -> -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
-      evalLambda env rest
-    (App (Var f) (a:b:[])) -> -- See Note [Eval Function Application]
-      do
-        av <- eval a
-        bv <- eval b
-        return $ evalPrim f av bv
-    (App e1 e2) ->
+    (Var v) -> evalVar v
+    (Type t) -> return $ if t == "True" then (VBool True) else (VBool False) -- UGLY HACK, need to fix how type constructors are handled
+    (Def fname arg body) ->     -- (define add2 x -> {x + 2})
+      evalDefine fname arg body
+    (If cond expT expF) ->      -- (if condition if-true if-false)
+      evalIf cond expT expF
+    (Lam arg body) ->           -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
+      return $ VClosure arg body env
+    (Prim (Var f) args) ->
+      evalPrim f args
+    (App e1 e2) ->              -- See Note [Eval Function Application]
       -- TODO: Multiple arguments, i.e. every element of e2, not only the head
       evalApp e1 (head e2)
-    x -> error $ "failed to match pattern: "++(show x)
+    x -> error $ "failed to match pattern: " ++ (show x)
 
-  where evalLit x = return $ case x of
-                             (LitInt i) -> VInt i
-                             (LitFloat f) -> VFloat f
-                             -- ...
 
-splitWhere :: (a -> Bool) -> [a] -> ([a],[a])
-splitWhere f ls = splitWhere' ls []
-  where splitWhere' [] _ = ([],[])
-        splitWhere' (x:xs) pre
-          | f x       = (reverse pre,xs)
-          | otherwise = splitWhere' xs (x:pre)
+evalLit :: Lit -> Evaluator Value
+evalLit x = return $ case x of
+                       (LitInt i) -> VInt i
+                       (LitFloat f) -> VFloat f
+                       -- ...
 
-evalDefine :: Env -> [Expr] -> Evaluator Value
-evalDefine env rest =
-  let (Var fname):rest' = rest
-      splitted = splitWhere (== Var "->") rest' in
-      case splitted of
-        ([Var arg], [body]) -> do
-          let newc = VClosure arg body env
-          put $ extend env fname newc
-          return newc
-        (_,_) -> error $ "Malformed Define: "++(show splitted)
+evalDefine :: String -> String -> Expr -> Evaluator Value
+evalDefine fname arg body = do
+  env <- get
+  let newc = VClosure arg body env
+  put $ extend env fname newc
+  return newc
 
-evalLambda :: Env -> [Expr] -> Evaluator Value
-evalLambda env rest =
-  return $ case splitWhere (== Var "->") rest of
-             ([Var arg], [body]) -> VClosure arg body env
-             (_,_) -> error $ "Malformed Lambda: "++(show rest)
-
-evalVar :: Env -> String -> Evaluator Value
-evalVar env v =
+evalVar :: String -> Evaluator Value
+evalVar v = do
+  env <- get
   return $ case Map.lookup v env of
              Just v  -> v
              Nothing -> error $ "variable "++v++" not found"
 
-evalIf :: [Expr] -> Evaluator Value
-evalIf (cond:eT:eF:[]) = do
+evalIf :: Expr -> Expr -> Expr -> Evaluator Value
+evalIf cond eT eF = do
   res <- eval cond
   case res of
     (VBool r) -> if r then (eval eT) else (eval eF)
@@ -115,8 +98,13 @@ evalApp e1 e2 = do
     _ -> error "object not applicable"
 
 
-evalPrim :: String -> BinOp
-evalPrim name a b = (getPrim name) a b
+evalPrim :: String -> [Expr] -> Evaluator Value
+evalPrim name [a,b] = let f = getPrim name in
+  do
+    a' <- eval a
+    b' <- eval b
+    return $ f a' b'
+evalPrim f args = error $ "incorrect arguments: " ++ (show args) ++ ", in function: " ++ f
 
 noFunction name = error $ "function "++ name ++ " not found"
 
