@@ -49,7 +49,7 @@ eval term = do
       evalIf cond expT expF
     (Lam arg body) ->           -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
       return $ VClosure arg body env
-    (Prim (Var f) args) ->
+    (Prim f args) ->
       evalPrim f args
     (App e1 e2) ->              -- See Note [Eval Function Application]
       -- TODO: Multiple arguments, i.e. every element of e2, not only the head

@@ -8,17 +8,10 @@ import Control.Monad.Reader
 import Axo.AST
 
 
-
-data Type
-  = TInt        -- e.g. Int
-  | TFloat      -- e.g. Float
-  | TArr [Type] -- e.g. Int -> Int -> Int
-  -- ...
-  deriving (Eq, Read, Show)
-
 type Env = Map.Map String Type
 
--- extend :: Env -> String -> Type -> Env
+extend :: String -> Type -> Env -> Env
+extend name ty env = Map.insert name ty env
 
 data TypeError
   = Mismatch [Type] [Type]
@@ -29,7 +22,9 @@ data TypeError
 type Check = ExceptT TypeError (Reader Env)
 
 
-
+inEnv :: (Name, Type) -> Check a -> Check a
+inEnv (x,t) c = do
+  local (extend x t) c
 
 
 lookupVar :: String -> Check Type
@@ -48,6 +43,11 @@ check expr = case expr of
   -- ... LitChar   ?
   -- TODO checks for other literals
 
+  Lam name expr -> do
+    rhs <- undefined -- inEnv (name undefined)
+    undefined
+    -- TArr
+  
   App e args -> do
     t1 <- check e
     targs <- mapM check args

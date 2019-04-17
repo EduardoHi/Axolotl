@@ -11,3 +11,4 @@
 <type definition> = :: (<type id> {-> <type id>})*
 
 
+<lambda declaration> = (\ x <type definition> -> <body>)
