@@ -175,7 +175,7 @@ parseExpr :: String -> Either String Exp
 parseExpr input = either (Left . errorBundlePretty) (Right . id) $ parse expr "Axolotl" input
 
 parseProgram :: String -> Either String Program
-parseProgram input = either (Left . errorBundlePretty) (Right . id) $ parse program "Axolotl" input
+parseProgram input = either (Left . errorBundlePretty) Right $ parse program "Axolotl" input
 
 -- | tihs function runs the parser, but also recieve a function f
 -- | that indicates what to do with the result of parsing `Program`

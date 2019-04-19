@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Compiler where
 
+import Data.List(intercalate)
 import qualified Data.Set as S
 
 import Control.Monad.Except
@@ -41,7 +42,7 @@ emptyState = CompilerState
   }
 
 type CompilerMonad =
-  ExceptT String
+  ExceptT String -- Exception of Type String
   (StateT CompilerState IO)
 
 
@@ -107,16 +108,20 @@ tDesugar p = do
 -- | Transforms a clean expression to an AST
 tExp :: CleanExp -> CompilerM AST.Expr
 tExp e = do
-  let ast = AST.toAST e
-  modify (\x -> x {_ast = Just (AST.Program [ast])})
-  return ast
+  case AST.toAST e of
+    Left e    -> throwError $ intercalate "\n\n" e
+    Right ast -> do
+      modify (\x -> x {_ast = Just (AST.Program [ast])})
+      return ast
 
 -- | Transforms a clean Program to an AST
 tAST :: CleanProgram -> CompilerM AST.Program
 tAST p = do
-  let ast = AST.toAST p
-  modify (\x -> x {_ast = Just ast})
-  return ast
+  case AST.toAST p of
+    Left e    -> throwError $ intercalate "\n\n" e
+    Right ast -> do
+      modify (\x -> x {_ast = Just ast})
+      return ast
 
 -- | Parses a Program from source
 tParseP :: CompilerM Program

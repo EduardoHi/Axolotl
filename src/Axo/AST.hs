@@ -12,6 +12,7 @@ import Data.Proxy()
 import qualified Data.List          as DL
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Set           as Set
+import Data.Either
 
 import Text.Megaparsec
 
@@ -34,7 +35,7 @@ data Type
   = TInt        -- e.g. Int
   | TFloat      -- e.g. Float
   | TArr [Type] -- e.g. Int -> Int -> Int
-  -- ...
+  -- ... user defined types
   deriving (Eq, Read, Show)
 
 type Name = String 
@@ -58,32 +59,27 @@ data Expr
   | Prim Name [Expr]     -- (*. 1.2 3.4)
   deriving (Show, Eq, Data, Ord)
 
-
-
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
 
-
 class ToAST p q where
-  toAST :: p -> q
-
+  toAST :: p -> Either [String] q
 
 instance ToAST CleanProgram Program where
-  toAST (CleanProgram exps) = Program $ map toAST exps
+  toAST (CleanProgram exps) = case lefts $ exps' of
+                                [] -> Right $ Program $ rights exps'
+                                errors -> Left $ concat errors
+    where exps' = map toAST exps
 
 instance ToAST CleanExp Expr where
   toAST (CleanSexp cleanExps) =
-    case exps of
-      (Var "define"):rest -> defineToAst rest
-      (Var "if"):rest     -> ifToAst rest
-      (Var "\\"):rest     -> lambdaToAst rest
-      h@(Var fun):rest    -> if fun `elem` primops
-        then Prim fun rest
-        else App h rest
-      _                   -> App (head exps) (tail exps)
-    where exps = map toAST cleanExps
+    case lefts $ expstream of
+      [] -> process $ ExprStream $ rights expstream
+      errors -> Left $ concat errors
+    where expstream = map toAST cleanExps
+          process = either (Left . pure . errorBundlePretty) Right . parse pSexp "S-Expression"
 
   toAST (CleanEAtom atom) =
-    case atom of
+    Right $ case atom of
       (Id (VarId i)) -> Var i
       (Id (TypeId i)) -> Type i
       (Literal l) -> Lit $ case l of
@@ -92,29 +88,7 @@ instance ToAST CleanExp Expr where
                              (StringLit s) -> LitString s
                              (CharLit c) -> LitChar c
 
-lambdaToAst rest =
-  case splitWhere (== Var "->") rest of
-             ([Var arg], [body]) -> Lam arg body
-             (_,_) -> error $ "Malformed Lambda: "++(show rest)
-
-defineToAst rest =
-  let (Var fname):rest' = rest
-      splitted = splitWhere (== Var "->") rest' in
-    case splitted of
-      ([Var arg], [body]) -> Def fname arg body
-      _ -> error $ "Malformed Define: " ++ (show splitted)
-
-ifToAst [cond, expT, expF] =
- If cond expT expF
-ifToAst rest = error $ "Malformed If: " ++ (show rest)
-splitWhere :: (a -> Bool) -> [a] -> ([a],[a])
-splitWhere f ls = splitWhere' ls []
-  where splitWhere' [] _ = ([],[])
-        splitWhere' (x:xs) pre
-          | f x       = (reverse pre,xs)
-          | otherwise = splitWhere' xs (x:pre)
-
---- utilities
+---- utilities
 
 isVar :: Expr -> Bool
 isVar Var{} = True
@@ -125,11 +99,13 @@ primops =
   , "+.", "-.", "/.", "*."   -- float ops
   ]
 
---- parsers
+---- parsers
+
+pSexp :: Parser Expr
+pSexp = pDefinition <|> pIf <|> pLambda <|> pPrim <|> pApp
 
 pExpr :: Parser Expr
 pExpr = anySingle
-
 
 pPrim :: Parser Expr
 pPrim = do
@@ -139,9 +115,6 @@ pPrim = do
 
 pApp :: Parser Expr
 pApp = App <$> pExpr <*> takeRest
-  -- f <- pExpr
-  -- x <- takeRest
-  -- return $ App f x
 
 pDefinition :: Parser Expr
 pDefinition = do
@@ -150,6 +123,7 @@ pDefinition = do
   -- this args parser is not useful yet, because Def currently has only 1 arg right now
   -- args <- takeWhile1P (Just "args") (\x -> (isVar x) && (x /= (Var "->")))
   (Var arg) <- pAnyVar
+  pVar "->"
   body <- pExpr
   return $ Def fname arg body
 
@@ -166,9 +140,6 @@ pLambda = do
   (Var arg) <- pAnyVar
   body <- pExpr
   return $ Lam arg body
-
----
-
 
 -------------------------------------------------------------
 -- Custom Type Parser For Expressions
@@ -207,15 +178,16 @@ instance Stream ExprStream where
     . fmap show
 
   reachOffset o pst@PosState {..} =
-    case drop (o - pstateOffset) (unTokenStream pstateInput) of
+    let stream = (unTokenStream pstateInput) in
+    case drop (o - pstateOffset) stream of
       [] ->
         ( pstateSourcePos
-        , "<missing input>"
+        , show stream
         , pst { pstateInput = ExprStream [] }
         )
       (x:xs) ->
         ( pstateSourcePos
-        , "<missing input>"
+        , show (x:xs)
         , pst { pstateInput = ExprStream (x:xs) }
         )
 
