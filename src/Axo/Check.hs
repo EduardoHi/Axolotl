@@ -43,7 +43,7 @@ check expr = case expr of
   -- ... LitChar   ?
   -- TODO checks for other literals
 
-  Lam name expr -> do
+  Lam name expr ty -> do
     rhs <- undefined -- inEnv (name undefined)
     undefined
     -- TArr

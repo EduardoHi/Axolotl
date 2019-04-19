@@ -43,11 +43,11 @@ eval term = do
     (Lit l) -> evalLit l
     (Var v) -> evalVar v
     (Type t) -> return $ if t == "True" then (VBool True) else (VBool False) -- UGLY HACK, need to fix how type constructors are handled
-    (Def fname arg body) ->     -- (define add2 x -> {x + 2})
+    (Def fname arg body ty) ->     -- (define add2 x -> {x + 2})
       evalDefine fname arg body
     (If cond expT expF) ->      -- (if condition if-true if-false)
       evalIf cond expT expF
-    (Lam arg body) ->           -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
+    (Lam arg body ty) ->           -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
       return $ VClosure arg body env
     (Prim f args) ->
       evalPrim f args

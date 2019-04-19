@@ -35,8 +35,9 @@ data Type
   = TInt        -- e.g. Int
   | TFloat      -- e.g. Float
   | TArr [Type] -- e.g. Int -> Int -> Int
+  | TCustom Name -- e.g. List
   -- ... user defined types
-  deriving (Eq, Read, Show)
+  deriving (Eq, Read, Show, Data, Ord)
 
 type Name = String 
 
@@ -50,13 +51,13 @@ data Lit
 data Expr
   = Var Name
   | Type Name
-  | Lit Lit              -- a literal
-  | App Expr [Expr]      -- (f a b c) -- apply function f, to arguments a b c
+  | Lit Lit                         -- a literal
+  | App Expr [Expr]                 -- (f a b c) -- apply function f, to arguments a b c
   -- "special forms"
-  | Lam Name Expr   -- (\x -> {x + 2})
-  | If Expr Expr Expr    -- (if {x > 0} "x is positive" "x is negative")
-  | Def Name Name Expr   -- (define f x -> {x + x})
-  | Prim Name [Expr]     -- (*. 1.2 3.4)
+  | Lam Name Expr (Maybe Type)      -- (\x -> {x + 2})
+  | If Expr Expr Expr               -- (if {x > 0} "x is positive" "x is negative")
+  | Def Name Name Expr (Maybe Type) -- (define f x -> {x + x})
+  | Prim Name [Expr]                -- (*. 1.2 3.4)
   deriving (Show, Eq, Data, Ord)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
@@ -65,19 +66,12 @@ class ToAST p q where
   toAST :: p -> Either [String] q
 
 instance ToAST CleanProgram Program where
-  toAST (CleanProgram exps) = case lefts $ exps' of
-                                [] -> Right $ Program $ rights exps'
-                                errors -> Left $ concat errors
+  toAST (CleanProgram exps) = eithers (Right . Program) exps'
     where exps' = map toAST exps
 
 instance ToAST CleanExp Expr where
-  toAST (CleanSexp cleanExps) =
-    case lefts $ expstream of
-      [] -> process $ ExprStream $ rights expstream
-      errors -> Left $ concat errors
+  toAST (CleanSexp cleanExps) = eithers (process pSexp) expstream
     where expstream = map toAST cleanExps
-          process = either (Left . pure . errorBundlePretty) Right . parse pSexp "S-Expression"
-
   toAST (CleanEAtom atom) =
     Right $ case atom of
       (Id (VarId i)) -> Var i
@@ -88,17 +82,16 @@ instance ToAST CleanExp Expr where
                              (StringLit s) -> LitString s
                              (CharLit c) -> LitChar c
 
----- utilities
+-- | process is the magical function that applies parser p to a stream of expressions, and returns
+-- either a parsing error, or the a new expression
+process :: (Parser Expr) -> [Expr] -> Either [String] Expr
+process p = either (Left . pure . errorBundlePretty) Right . (parse p "S-Expression" . ExprStream)
 
-isVar :: Expr -> Bool
-isVar Var{} = True
-isVar _ = False
-
-primops =
-  [ "+" , "-" , "/" , "*"    -- int ops
-  , "+.", "-.", "/.", "*."   -- float ops
-  ]
-
+-- | eithers, applies function f only if left is empty, otherwise it returns the left in a list
+eithers :: ([b] -> Either [a] c) -> [Either [a] b] -> Either [a] c
+eithers f xs = case lefts $ xs of
+  [] -> f (rights xs)
+  errors -> Left $ concat errors
 ---- parsers
 
 pSexp :: Parser Expr
@@ -113,19 +106,44 @@ pPrim = do
   rest <- takeRest
   return $ Prim fname rest
 
+primops =
+  [ "+" , "-" , "/" , "*"    -- int ops
+  , "+.", "-.", "/.", "*."   -- float ops
+  ]
+
 pApp :: Parser Expr
 pApp = App <$> pExpr <*> takeRest
+
+pTypeDef :: Parser Type
+pTypeDef = do
+  pVar "::"
+  ty  <- pType
+  tys <- some $ (pVar "->") *> pType
+  return $ if null tys
+           then ty
+           else TArr (ty:tys)
+
+pPattBody :: Parser (Expr,Expr)
+pPattBody = do
+  [pat, (Var "->"), body] <- pAppElems
+  return (pat, body)
+
+pSimplePattBody :: Parser (Expr,Expr)
+pSimplePattBody = do
+  arg <- pAnyVar
+  pVar "->"
+  body <- pExpr
+  return (arg,body)
 
 pDefinition :: Parser Expr
 pDefinition = do
   pVar "define"
   (Var fname) <- pAnyVar
+  typedecl <- optional pTypeDef
   -- this args parser is not useful yet, because Def currently has only 1 arg right now
   -- args <- takeWhile1P (Just "args") (\x -> (isVar x) && (x /= (Var "->")))
-  (Var arg) <- pAnyVar
-  pVar "->"
-  body <- pExpr
-  return $ Def fname arg body
+  (Var arg,body) <- pPattBody <|> pSimplePattBody
+  return $ Def fname arg body typedecl
 
 pIf :: Parser Expr
 pIf = do
@@ -138,8 +156,9 @@ pIf = do
 pLambda = do
   pVar "\\"
   (Var arg) <- pAnyVar
+  typedecl <- optional pTypeDef
   body <- pExpr
-  return $ Lam arg body
+  return $ Lam arg body typedecl
 
 -------------------------------------------------------------
 -- Custom Type Parser For Expressions
@@ -193,6 +212,20 @@ instance Stream ExprStream where
 
 type Parser = Parsec Void ExprStream
 
+---- utilities
+
+isVar :: Expr -> Bool
+isVar Var{} = True
+isVar _ = False
+
+isType :: Expr -> Bool
+isType Type{} = True
+isType _ = False
+
+isApp :: Expr -> Bool
+isApp App{} = True
+isApp _ = False
+
 pToken :: Expr -> Parser Expr
 pToken c = token test (Set.singleton . Tokens . nes $ c)
   where
@@ -207,8 +240,20 @@ pVar v = satisfy (\case
                      _ -> False)
 
 pAnyVar :: Parser Expr
-pAnyVar = satisfy (\case
-                      Var {} -> True
-                      _ -> False)
+pAnyVar = satisfy isVar
 
+pAnyType :: Parser Expr
+pAnyType = satisfy isType
 
+pAppElems :: Parser [Expr]
+pAppElems = do
+  (App h t) <- satisfy isApp
+  return $ h:t
+
+pType :: Parser Type
+pType = do
+  ty <- pAnyType
+  return $ case ty of
+             (Type "Int")   -> TInt
+             (Type "Float") -> TFloat
+             (Type custom)  -> TCustom custom
