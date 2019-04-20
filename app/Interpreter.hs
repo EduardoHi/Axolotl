@@ -7,28 +7,30 @@ import qualified Data.Map as Map
 import System.Console.Repline
 
 
-import Compiler (emptyState, runCompilerM, loadExpr)
+import Compiler (emptyState, runCompilerM, loadExpr, CompilerState)
 
 import Axo.Eval
 
 data InterpreterState = InterpreterState
-  { _env :: Env
+  { _env    :: Env
+  , _cState :: CompilerState
   }
 
-initialState = InterpreterState emptyEnv
+initialState = InterpreterState emptyEnv emptyState
 
 type Repl a = HaskelineT (StateT InterpreterState IO) a
 
 -- Evaluation : handle each line user inputs
 cmd :: String -> Repl ()
 cmd input = do
-  env <- gets _env
-  (res, _) <- liftIO $ runCompilerM (loadExpr input) emptyState -- second tuple element is the final state
+  env  <- gets _env
+  cstate <- gets _cState
+  (res, cstate') <- liftIO $ runCompilerM (loadExpr input) cstate
   case res of
     Left err -> liftIO $ putStrLn err
     Right x  -> do
       let (val,env') = runEval env x
-      put $ InterpreterState {_env = env'}
+      put $ InterpreterState {_env = env', _cState = cstate'}
       liftIO $ do
         putStrLn $ "parsed: " ++ (show x)
         putStrLn $ "evaluated: " ++ (show $ val)
