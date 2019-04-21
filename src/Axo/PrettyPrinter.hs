@@ -75,7 +75,9 @@ instance Pretty CleanProgram where
 instance Pretty CleanExp where
   pretty (CleanSexp []) = error "CleanSexp should not be empty"
   pretty (CleanSexp (e:es)) = parens (pretty e <+> (nest 4 $ hsep $ map pretty es))
-  pretty (CleanEAtom a) = pretty a
+  pretty (CleanLit  x) = pretty x
+  pretty (CleanVar  x) = text x
+  pretty (CleanType x) = text x
 
 -- -- AST pretty printing --
 

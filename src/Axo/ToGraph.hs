@@ -205,8 +205,9 @@ instance ToGraph CleanProgram where
 
 instance ToGraph CleanExp where
   toNode e@(CleanSexp es) = es `childrenOf` e
-  toNode e@(CleanEAtom a) = e `parentOf` a
-  
+  toNode e@(CleanLit  x) = e `parentOf` x
+  toNode e@(CleanVar  x) = e `parentOf` x
+  toNode e@(CleanType x) = e `parentOf` x
 
 initialState = (0, ([], []))
 
