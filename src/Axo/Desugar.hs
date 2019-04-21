@@ -12,13 +12,21 @@ class Desugar p q where
 instance Desugar Program CleanProgram where
   desugar (Program exps) = CleanProgram $ desugar exps
 
+instance Desugar Atom CleanExp where
+  desugar (Id i) =
+    case i of
+      (VarId  s) -> CleanVar  s
+      (TypeId s) -> CleanType s
+  desugar (Literal li) = CleanLit li
+
 instance Desugar Exp (Maybe CleanExp) where
-  desugar e = case e of
-    (ESexp s) -> Just $ desugar s
-    (EAtom a) -> Just $ CleanEAtom a
-    (EIexp i) -> Just $ desugar i
-    (EInfixexp i) -> Just $ desugar i
-    (EComment _) -> Nothing
+  desugar e =
+    case e of
+      (EComment _)  -> Nothing
+      (ESexp s)     -> Just $ desugar s
+      (EAtom a)     -> Just $ desugar a
+      (EIexp i)     -> Just $ desugar i
+      (EInfixexp i) -> Just $ desugar i
 
 instance Desugar [Exp] [CleanExp] where
   desugar es = catMaybes $ map desugar es

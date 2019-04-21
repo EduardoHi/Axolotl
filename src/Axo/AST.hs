@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -20,8 +21,6 @@ import Text.Megaparsec
 import Axo.ParseTree (
   CleanProgram(..),
   CleanExp(..),
-  Atom(..),
-  Identifier(..),
   Literal(..)
   )
 
@@ -69,18 +68,21 @@ instance ToAST CleanProgram Program where
   toAST (CleanProgram exps) = eithers (Right . Program) exps'
     where exps' = map toAST exps
 
-instance ToAST CleanExp Expr where
-  toAST (CleanSexp cleanExps) = eithers (process pSexp) expstream
+instance ToAST [CleanExp] Expr where
+  toAST cleanExps = eithers (process pSexp) expstream
     where expstream = map toAST cleanExps
-  toAST (CleanEAtom atom) =
-    Right $ case atom of
-      (Id (VarId i)) -> Var i
-      (Id (TypeId i)) -> Type i
-      (Literal l) -> Lit $ case l of
-                             (IntLit i) -> (LitInt (read i))
-                             (FloatLit f) -> (LitFloat (read f))
-                             (StringLit s) -> LitString s
-                             (CharLit c) -> LitChar c
+
+instance ToAST CleanExp Expr where
+  toAST atom =
+    case atom of
+      CleanSexp s -> toAST s
+      CleanVar  i -> Right $ Var  i
+      CleanType t -> Right $ Type t
+      CleanLit  l -> Right $ Lit $ case l of
+                                     (IntLit i) -> (LitInt (read i))
+                                     (FloatLit f) -> (LitFloat (read f))
+                                     (StringLit s) -> LitString s
+                                     (CharLit c) -> LitChar c
 
 -- | process is the magical function that applies parser p to a stream of expressions, and returns
 -- either a parsing error, or the a new expression

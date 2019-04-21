@@ -48,7 +48,9 @@ data Comment = Comment String deriving (Show, Eq, Data, Typeable)
 newtype CleanProgram = CleanProgram [CleanExp] deriving (Show, Eq, Data, Typeable)
 
 data CleanExp = CleanSexp [CleanExp]
-              | CleanEAtom Atom
+              | CleanLit Literal
+              | CleanVar String
+              | CleanType String
               deriving (Show, Eq, Data, Typeable)
 
 -- | joins the inner exps of ExpSeq
