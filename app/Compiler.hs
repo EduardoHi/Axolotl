@@ -13,7 +13,8 @@ import Axo.Parser (parseProgram, parseExpr)
 import Axo.ToGraph (showGraph, toGraph, ToGraph)
 import Axo.ParseTree (Program(..), CleanProgram(..), CleanExp)
 import Axo.Desugar (desugar)
-import qualified Axo.AST as AST (toAST, Program(..), Expr)
+import qualified Axo.AST as AST (toAST, Program(..), Expr, Type)
+import Axo.Check (TypeEnv, checkTop, emptyTypeEnv, typeErrorPretty)
 
 import Flags
 
@@ -30,6 +31,8 @@ data CompilerState = CompilerState
   ,  _st       :: Maybe Program -- syntax tree
   , _desugared :: Maybe CleanProgram
   , _ast       :: Maybe AST.Program -- abstract syntax tree
+  , _tyenv     :: TypeEnv
+  -- ... extra info: a var table... etc.
   } deriving Show
 
 emptyState = CompilerState
@@ -39,6 +42,7 @@ emptyState = CompilerState
   ,  _st       = Nothing
   , _desugared = Nothing
   , _ast       = Nothing
+  , _tyenv     = emptyTypeEnv
   }
 
 type CompilerMonad =
@@ -72,13 +76,16 @@ ifFlag flag m = do
   when (flags `isSet` flag) (void m)
 
 
-loadExpr :: String -> CompilerM AST.Expr
+loadExpr :: String -> CompilerM (AST.Expr, AST.Type)
 loadExpr s = do
   modify (\x -> x {_source = s})
-  (CleanProgram e) <- tParseE >>= tDesugar
-  case e of
+  (CleanProgram exps) <- tParseE >>= tDesugar
+  case exps of
     [] -> throwError "Empty Program"
-    _  -> tExp (head e)
+    _  -> do
+      e <- tExp (head exps)
+      et <- tCheckE e
+      return (e,et)
 
 loadModule :: String -> CompilerM AST.Program
 loadModule s = do
@@ -97,6 +104,28 @@ loadModule s = do
           ifFlag OGraph $ graphOut x
           ifFlag OHaskellData $ haskellDataOut x
           ifFlag OAxolotlSrc $ axolotlSrcOut x
+
+--- Transformations
+
+-- | Parses a Program from source
+tParseP :: CompilerM Program
+tParseP = do
+  src <- gets _source
+  case parseProgram src of
+    Left e -> throwError e
+    Right st -> do
+      modify (\x -> x {_st = Just st})
+      return st
+
+-- | Parses an Expression from source, returns a Program with only that expression
+tParseE :: CompilerM Program
+tParseE = do
+  src <- gets _source
+  case parseExpr src of
+    Left e -> throwError e
+    Right st -> do
+      modify (\x -> x {_st = Just (Program [st])})
+      return (Program [st])
 
 -- | Desugars the parsed program
 tDesugar :: Program -> CompilerM CleanProgram
@@ -123,25 +152,20 @@ tAST p = do
       modify (\x -> x {_ast = Just ast})
       return ast
 
--- | Parses a Program from source
-tParseP :: CompilerM Program
-tParseP = do
-  src <- gets _source
-  case parseProgram src of
-    Left e -> throwError e
-    Right st -> do
-      modify (\x -> x {_st = Just st})
-      return st
+-- | Type Check that the Program is well-typed
+tCheckP :: AST.Program -> CompilerM [AST.Type]
+tCheckP (AST.Program exps) = do
+  mapM tCheckE exps
 
--- | Parses an Expression from source, returns a Program with only that expression
-tParseE :: CompilerM Program
-tParseE = do
-  src <- gets _source
-  case parseExpr src of
-    Left e -> throwError e
-    Right st -> do
-      modify (\x -> x {_st = Just (Program [st])})
-      return (Program [st])
+-- | Type Check that the Expression is well-typed
+tCheckE :: AST.Expr -> CompilerM AST.Type
+tCheckE e = do
+  tyenv <- gets _tyenv
+  case checkTop tyenv e of
+    Left e   -> throwError $ typeErrorPretty e
+    Right ty -> return ty
+
+--- End Transformations
 
 -- | graph viz format output to a file
 graphOut :: ToGraph t => t -> CompilerM ()

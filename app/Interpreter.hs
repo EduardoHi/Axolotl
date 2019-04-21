@@ -13,7 +13,7 @@ import Axo.Eval
 
 data InterpreterState = InterpreterState
   { _env    :: Env
-  , _cState :: CompilerState
+  , _cstate :: CompilerState
   }
 
 initialState = InterpreterState emptyEnv emptyState
@@ -24,13 +24,14 @@ type Repl a = HaskelineT (StateT InterpreterState IO) a
 cmd :: String -> Repl ()
 cmd input = do
   env  <- gets _env
-  cstate <- gets _cState
+  cstate <- gets _cstate
   (res, cstate') <- liftIO $ runCompilerM (loadExpr input) cstate
+  modify $ \is -> is {_cstate = cstate'}
   case res of
     Left err -> liftIO $ putStrLn err
-    Right x  -> do
+    Right (x,t)  -> do
       let (val,env') = runEval env x
-      put $ InterpreterState {_env = env', _cState = cstate'}
+      modify $ \is -> is {_env = env'}
       liftIO $ do
         putStrLn $ "parsed: " ++ (show x)
         putStrLn $ "evaluated: " ++ (show $ val)
@@ -46,6 +47,15 @@ completer n = do
 help :: [String] -> Repl ()
 help args = liftIO $ print $ "Help: " ++ show args
 
+-- | prints the type of the expression
+tycheck :: [String] -> Repl ()
+tycheck input = do
+  cstate <- gets _cstate
+  (res,_) <- liftIO $ runCompilerM (loadExpr $ unlines input) cstate
+  liftIO $ case res of
+             Left err -> putStrLn err
+             Right (_,t) -> print t
+
 -- | print the current environment and it's bindings
 env :: [String] -> Repl ()
 env _ = do
@@ -53,8 +63,10 @@ env _ = do
   liftIO $ mapM_ (\(k,v) -> putStrLn $ k ++ ": " ++ (show v)) $ Map.mapWithKey (,) currentEnv
 
 options :: [(String, [String] -> Repl ())]
-options = [ ("help", help)  -- :help
-          , ("env", env)    -- :env
+options = [ ("help", help)    -- :help
+          , ("env", env)      -- :env
+          , ("t", tycheck)    -- :t
+          , ("type", tycheck) -- :type
           ]
 
 ini :: Repl ()
