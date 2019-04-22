@@ -10,5 +10,10 @@
 
 <type definition> = :: (<type id> {-> <type id>})*
 
+e.g.
+:: (Int -> Int -> Int)
 
 <lambda declaration> = (\ <pattern> [<type definition>] -> <body>)
+
+
+(data <Type Name> (Constr_1 t1 .. tn) ... (Constr_n t1 .. tn))

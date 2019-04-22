@@ -8,7 +8,7 @@ data Literal = IntLit String
              | FloatLit String
              | StringLit String
              | CharLit Char
-             deriving (Show, Eq, Data, Typeable)
+             deriving (Show, Eq, Data, Typeable, Ord)
 
 -- TODO: if we relax the Program definition of not only one space, and
 -- not only sexps, Program and ExpSeq are equivalent
@@ -51,7 +51,7 @@ data CleanExp = CleanSexp [CleanExp]
               | CleanLit Literal
               | CleanVar String
               | CleanType String
-              deriving (Show, Eq, Data, Typeable)
+              deriving (Show, Eq, Data, Typeable, Ord)
 
 -- | joins the inner exps of ExpSeq
 joinExpSeqs :: [ExpSeq] -> ExpSeq
@@ -60,3 +60,4 @@ joinExpSeqs xs = ExpSeq $ foldMap (\(ExpSeq e) -> e) xs
 
 constrName :: Data a => a -> String
 constrName = showConstr . toConstr
+
