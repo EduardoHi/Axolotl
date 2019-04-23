@@ -90,7 +90,7 @@ instance ToAST [CleanExp] [Expr] where
   toAST cleanExps = groupEithers $ map toAST cleanExps
 
 instance ToAST CleanExp Expr where
-  toAST expr = process pExpr [expr]
+  toAST expr = process "toAST" pExpr [expr]
 
 -- | eithers, applies function f only iff lefts in the list is empty, otherwise it returns the lefts in the list
 eithers :: ([b] -> Either [a] c) -> [Either [a] b] -> Either [a] c
@@ -201,6 +201,7 @@ pLambda = do
   oneOf $ map CleanVar ["\\", "lambda", "λ"]
   (CleanVar arg) <- pAnyVar
   typedecl <- optional pTypeDecl
+  pArr
   body <- pExpr
   return $ Lam arg body typedecl
 

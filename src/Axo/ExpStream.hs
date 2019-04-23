@@ -76,15 +76,15 @@ type Parser = Parsec Void ExpStream
 
 -- | process is the magical function that applies parser p to a stream of expressions, and returns
 -- either a parsing error, or the a new expression
-process :: (Parser a) -> [CleanExp] -> Either [String] a
-process p = either (Left . pure . errorBundlePretty) Right . (parse p "S-Expression" . ExpStream)
+process :: String -> (Parser a) -> [CleanExp] -> Either [String] a
+process parsername p = either (Left . pure . errorBundlePretty) Right . (parse p parsername . ExpStream)
 
 -- | runs the parser p inside of a sexp. fails if it's not a sexp, or if the parser p fails.
 pInSexp :: Parser a -> Parser a
 pInSexp p = do
   next <- anySingle
   case next of
-    (CleanSexp exps) -> case process p exps of
+    (CleanSexp exps) -> case process "inside s-exp" p exps of
                           Left errors -> fail $ concat errors
                           Right exp -> return exp
     _                -> fail $ "Expected a CleanSexp, got " ++ (show next)
