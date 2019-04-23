@@ -1,0 +1,38 @@
+-- rational numbers arithmetic
+
+-- features used:
+-- data declarations
+-- algebraic product type
+-- functions
+
+(data Rat (Rat Int Int))
+-- equal to haskells: data Rat = Rat Int Int
+
+(define numer :: (Rat -> Int)
+     (Rat n _ -> n))
+
+(define denom :: (Rat -> Int)
+     (Rat _ d -> d))
+
+(define mk-rat :: (Int -> Int -> Rat)
+     n d -> (Rat n d))
+
+(define add-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {{(numer x) * (denom y)} + {(numer y) * (denom x)}}
+                 {(denom x) * (denom y)}))
+
+(define sub-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {{(numer x) * (denom y)} - {(numer y) * (denom x)}}
+                 {(denom x) * (denom y)}))
+
+
+(define mul-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {(numer x) * (numer y)}
+                 {(denom x) * (denom y)}))
+
+(define div-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {(numer x) * (denom y)}
+                 {(denom x) * (numer y)}))
+
+(define equal-rat? :: (Rat -> Rat -> Bool)
+     x y -> {{(numer x) * (denom y)} == {(numer y) * (denom x)}})

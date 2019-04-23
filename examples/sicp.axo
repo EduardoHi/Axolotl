@@ -1,0 +1,120 @@
+
+
+-- features used:
+
+-- ex 1.4
+
+-- - multiple arguments
+-- - if
+-- - > comparison operator
+-- - first class funcs
+-- - infix expression
+
+(define a-plus-abs-b
+    (a b -> (if {b > 0} + -) a b))
+
+-- ex 1.10
+
+-- - multiple arguments
+-- - pattern matching
+-- - _ wildcard matching
+-- multiple definitions
+
+(define ackermann
+    (_ 0 -> 0)
+    (0 y -> {2 * y})
+    (_ 1 -> 2)
+    (x y -> (A {x - 1} (A x {y - 1}))))
+
+
+-- ex 1.12
+
+-- same as above
+
+(define pascal-triangle
+    (_ 1 -> 1)
+    (1 _ -> 1)
+    (n k -> (if {n = k}
+       	    	1
+                {(pascal-triangle {n - 1} {k - 1}) + (pascal-triangle n {k - 1})})))
+
+
+-- fibonacci recursive and iterative
+
+-- recursivity
+-- pattern matching
+-- multiple args
+-- multiple defs
+-- == equal operator
+
+(define fib-r
+    (0 -> 0)
+    (1 -> 1)
+    (n -> {(fib-r {n - 1}) + (fib-r {n - 2})}))
+
+(define fib-i
+    (a b count -> (if {count == 0}
+       	       	      b
+		      (fib-i (+ a b)
+		             a
+			     {count - 1}))))
+
+
+-- rational numbers arithmetic
+
+(data Rat (Rat Int Int))
+-- equal to haskells: data Rat = Rat Int Int
+
+(define numer :: (Rat -> Int)
+     (Rat n _ -> n))
+
+(define denom :: (Rat -> Int)
+     (Rat _ d -> d))
+
+(define mk-rat :: (Int -> Int -> Rat)
+     n d -> (Rat n d))
+
+(define add-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {{(numer x) * (denom y)} + {(numer y) * (denom x)}}
+                 {(denom x) * (denom y)}))
+
+(define sub-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {{(numer x) * (denom y)} - {(numer y) * (denom x)}}
+                 {(denom x) * (denom y)}))
+
+
+(define mul-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {(numer x) * (numer y)}
+                 {(denom x) * (denom y)}))
+
+(define div-rat :: (Rat -> Rat -> Rat)
+     x y -> (Rat {(numer x) * (denom y)}
+                 {(denom x) * (numer y)}))
+
+(define equal-rat? :: (Rat -> Rat -> Bool)
+     x y -> {{(numer x) * (denom y)} == {(numer y) * (denom x)}})
+
+
+
+--- List functions
+
+(data List a (Cons a List) (Nil))
+
+(define foldr :: ((a -> b -> b) -> b -> List a -> b)
+    f end Nil		-> end
+    f end (Cons x xs)	-> (f x (foldr f end xs)))
+
+(define foldl :: ((b -> a -> b) -> b -> List a -> b)
+    f a Nil		-> end
+    f a (Cons x xs)	-> (foldl f (f a x)) xs)
+
+
+-- syntactic sugar for lists:
+-- [] = Nil
+-- ([ a b c d ]) = (Cons a (Cons b.. Nil))
+
+-- syntatic sugar for pairs:
+-- {a , b} = (Tuple a b)
+
+(define id x -> x)
+

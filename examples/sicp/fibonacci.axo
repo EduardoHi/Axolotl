@@ -1,0 +1,21 @@
+-- fibonacci recursive and iterative
+
+-- recursivity
+-- pattern matching
+-- multiple args
+-- multiple defs
+-- == equal operator
+
+
+(define fib-r
+    (0 -> 0)
+    (1 -> 1)
+    (n -> {(fib-r {n - 1}) + (fib-r {n - 2})}))
+
+
+(define fib-i
+    (a b count -> (if {count == 0}
+       	       	      b
+		      (fib-i (+ a b)
+		             a
+			     {count - 1}))))

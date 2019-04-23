@@ -1,0 +1,12 @@
+
+
+(\s -> s)
+
+(((\ x -> (\y -> (+ x y))) 10) 2)  -- evals to 12
+
+
+(lambda x -> {x *. 10})
+
+((λ x -> {x * {x * x}}) 2) -- evals to 8
+
+--comment

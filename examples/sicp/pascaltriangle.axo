@@ -1,0 +1,13 @@
+-- ex 1.12
+
+-- - multiple arguments
+-- - pattern matching
+-- - _ wildcard matching
+-- multiple definitions
+
+(define pascal-triangle
+    (_ 1 -> 1)
+    (1 _ -> 1)
+    (n k -> (if {n = k}
+       	    	1
+                {(pascal-triangle {n - 1} {k - 1}) + (pascal-triangle n {k - 1})})))
