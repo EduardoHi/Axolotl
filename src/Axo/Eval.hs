@@ -26,6 +26,9 @@ data Value
 emptyEnv :: Env
 emptyEnv = Map.empty
 
+boundVars :: Env -> [String]
+boundVars m = Map.keys m
+
 type Env = Map.Map String Value
 type BinOp = Value -> Value -> Value
 
@@ -65,10 +68,10 @@ evalLit x = return $ case x of
                        (LitFloat f) -> VFloat f
                        -- ...
 
-evalDefine :: String -> String -> Expr -> Evaluator Value
-evalDefine fname args body = do
+evalDefine :: String -> String -> [Expr] -> Evaluator Value
+evalDefine fname arg body = do
   env <- get
-  let newc = VClosure arg body env
+  let newc = VClosure arg (head body) env
   put $ extend env fname newc
   return newc
 

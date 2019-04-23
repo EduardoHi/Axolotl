@@ -32,7 +32,7 @@ data TypeError
   deriving (Show)
 
 typeErrorPretty :: TypeError -> String
-typeErrorPretty te = "Check.hs" ++ case te of
+typeErrorPretty te = "Check.hs " ++ case te of
   Mismatch xs ys -> "Expected: " ++ (show xs) ++ ", but got: " ++ (show ys)
   NotFunction t  -> "Type: " ++ (show t) ++ " is not a function"
   UnboundVar s   -> "Unbound Variable: " ++ s
@@ -73,16 +73,16 @@ check expr = case expr of
     rhs <- inEnv (name,fromJust ty) (check body) -- inEnv (name undefined)
     return (TArr [fromJust ty,rhs])
 
-  Def fname args body ty -> do
+  Def fname args body (Just ty@(TArr tys)) -> do
     -- if type signature is specified,
     -- we already know the type of the function
     -- then only check that body is correct too.
     -- else infer type.
-
-    inEnvAll (args, fromJust ty) (check body)
+--    inEnvAll (zipWith (,) args tys) (checks body)
+    inEnv (fname, ty) (checks body)
     -- TODO we also need to extend every argument with it's type
 
-    return (fromJust ty)
+    return ty
 
   If cond eT eF -> do
     -- cond should be a boolean

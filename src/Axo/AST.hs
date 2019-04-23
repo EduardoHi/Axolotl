@@ -58,21 +58,26 @@ data Lit
   deriving (Show, Eq, Data)
 
 data Expr
-  = Var Name                        -- abc       -- a symbol
-  | Type Name                       -- List      -- a capitalized symbol
-  | Lit Lit                         -- a literal
-  | App Expr [Expr]                 -- (f a b c) -- apply function f, to arguments a b c
-  -- "special forms" -- see Note [Special Forms]
-  | Lam Name Expr (Maybe Type)      -- (\x -> {x + 2})
-  | If Expr Expr Expr               -- (if {x > 0} "x is positive" "x is negative")
-  | Def Name [Expr] [Expr] (Maybe Type) -- (define f x -> {x + x})
-  | Prim Name [Expr]                -- (*. 1.2 3.4)
+  = Var Name                          -- abc       -- a symbol
+  | Type Name                         -- List      -- a capitalized symbol
+  | Lit Lit                           -- a literal
+  | App Expr [Expr]                   -- (f a b c) -- apply function f, to arguments a b c
+                                      -- "special forms" -- see Note [Special Forms]
+  | Lam Name Expr (Maybe Type)        -- (\x -> {x + 2})
+  | If Expr Expr Expr                 -- (if {x > 0} "x is positive" "x is negative")
+  | Def Name Name [Expr] (Maybe Type) -- (define f x -> {x + x})
+  | Prim Name [Expr]                  -- (*. 1.2 3.4)
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
 
 isDef Def{} = True
 isDef _ = False
+
+isVar Var{} = True
+isVar _ = False
+
+_varName (Var n) = n
 
 class ToAST p q where
   toAST :: p -> Either [String] q
@@ -150,8 +155,8 @@ pPatterns :: Parser [Expr]
 pPatterns = do
   lhs <- toAST <$> takeWhileP (Just "Pattern") (\case
                                          (CleanVar "->") -> False
-                                         (CleanVar _) -> False --- for now, patterns are only valid vars
-                                         _ -> True)
+                                         (CleanVar _) -> True --- for now, patterns are only valid vars
+                                         _ -> False)
   case lhs of
       Left e     -> fail $ concat e
       Right lhs' -> return lhs'
@@ -206,5 +211,5 @@ pDefine = do
   pVar "define"
   (CleanVar fname) <- pAnyVar
   typedecl <- optional pTypeDecl
-  (args, body) <- pPattBody <|> pSimplePattBody
-  return $ Def fname args body typedecl
+  (args, body) <- (try pSimplePattBody) <|> pPattBody
+  return $ Def fname (head $ map _varName args) body typedecl

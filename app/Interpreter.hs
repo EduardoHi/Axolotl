@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Interpreter where
 
 
@@ -7,9 +8,10 @@ import qualified Data.Map as Map
 import System.Console.Repline
 
 
-import Compiler (emptyState, runCompilerM, loadExpr, CompilerState)
+import Compiler (emptyState, runCompilerM, loadExpr, loadFile, CompilerState)
 
 import Axo.Eval
+import qualified Axo.AST as AST (Expr(..), Program(..))
 
 data InterpreterState = InterpreterState
   { _env    :: Env
@@ -21,27 +23,27 @@ initialState = InterpreterState emptyEnv emptyState
 type Repl a = HaskelineT (StateT InterpreterState IO) a
 
 -- Evaluation : handle each line user inputs
-cmd :: String -> Repl ()
-cmd input = do
+interpret :: String -> Repl ()
+interpret input = do
   env  <- gets _env
   cstate <- gets _cstate
   (res, cstate') <- liftIO $ runCompilerM (loadExpr input) cstate
   modify $ \is -> is {_cstate = cstate'}
   case res of
     Left err -> liftIO $ putStrLn err
-    Right (x,t)  -> do
-      let (val,env') = runEval env x
-      modify $ \is -> is {_env = env'}
-      liftIO $ do
-        putStrLn $ "parsed: " ++ (show x)
-        putStrLn $ "evaluated: " ++ (show $ val)
-
+    Right (x,_)  -> do -- second argument is the type
+      evalExp x
 
 -- Tab Completion: return a completion for partial words entered
-completer :: Monad m => WordCompleter m
+defaultMatcher :: MonadIO m => [(String, CompletionFunc m)]
+defaultMatcher = [
+  (":load", fileCompleter)
+  ]
+
+completer :: (Monad m, MonadState InterpreterState m) => WordCompleter m
 completer n = do
-  let names = ["kirk", "spock", "mccoy"]
-  return $ filter (isPrefixOf n) names
+  ns <- gets _env
+  return $ boundVars ns
 
 -- Commands
 help :: [String] -> Repl ()
@@ -62,11 +64,34 @@ env _ = do
   currentEnv <- gets _env
   liftIO $ mapM_ (\(k,v) -> putStrLn $ k ++ ": " ++ (show v)) $ Map.mapWithKey (,) currentEnv
 
+load :: [String] -> Repl ()
+load args = do
+  cstate <- gets _cstate
+  (res,cstate') <- liftIO $ runCompilerM (loadFile $ head args) cstate
+  modify $ \is -> is {_cstate = cstate'}
+  case res of
+    Left err -> liftIO $ putStrLn err
+    Right (AST.Program exps) ->
+      evalExps exps
+
+evalExps :: [AST.Expr] -> Repl ()
+evalExps exps = mapM_ evalExp exps
+
+evalExp :: AST.Expr -> Repl ()
+evalExp e = do
+  env  <- gets _env
+  let (val,env') = runEval env e
+  modify $ \is -> is {_env = env'}
+  liftIO $ do
+    putStrLn $ "parsed: " ++ (show e)
+    putStrLn $ "evaluated: " ++ (show val)
+
 options :: [(String, [String] -> Repl ())]
 options = [ ("help", help)    -- :help
           , ("env", env)      -- :env
           , ("t", tycheck)    -- :t
           , ("type", tycheck) -- :type
+          , ("load", load)    -- :load
           ]
 
 ini :: Repl ()
@@ -74,4 +99,4 @@ ini = liftIO $ putStrLn "Welcome to the Axolotl Interpreter!"
 
 repl :: IO ()
 repl = flip evalStateT initialState $
-       evalRepl (pure "Axo λ> ") cmd options (Just ':') (Word completer) ini
+       evalRepl (pure "Axo λ> ") interpret options (Just ':') (Prefix (wordCompleter completer) defaultMatcher) ini

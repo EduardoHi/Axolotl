@@ -87,6 +87,11 @@ loadExpr s = do
       et <- tCheckE e
       return (e,et)
 
+loadFile :: String -> CompilerM AST.Program
+loadFile filename = do
+  sourceCode <- liftIO $ readFile $ filename
+  loadModule sourceCode
+
 loadModule :: String -> CompilerM AST.Program
 loadModule s = do
   modify (\x -> x {_source = s})

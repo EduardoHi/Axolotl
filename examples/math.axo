@@ -4,6 +4,6 @@
 -- Simple Math Examples
 
 
-(define (sum2 x y) (+ x y))
+(define sum2 x y -> {x + y})
 
-(define (square x) (* x x))
+(define square x -> (* x x))
