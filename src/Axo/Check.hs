@@ -29,7 +29,7 @@ data TypeError
   deriving (Show)
 
 typeErrorPretty :: TypeError -> String
-typeErrorPretty te = case te of
+typeErrorPretty te = "Check.hs" ++ case te of
   Mismatch xs ys -> "Expected: " ++ (show xs) ++ ", but got: " ++ (show ys)
   NotFunction t  -> "Type: " ++ (show t) ++ " is not a function"
   UnboundVar s   -> "Unbound Variable: " ++ s

@@ -7,6 +7,8 @@ import Control.Monad.State.Strict
 
 type ArgName = String
 
+evalError msg = error $ "Axo.Eval.hs" ++ msg
+
 data Value
   = VInt Int
   | VFloat Float
@@ -54,7 +56,7 @@ eval term = do
     (App e1 e2) ->              -- See Note [Eval Function Application]
       -- TODO: Multiple arguments, i.e. every element of e2, not only the head
       evalApp e1 (head e2)
-    x -> error $ "failed to match pattern: " ++ (show x)
+    x -> evalError $ "failed to match pattern: " ++ (show x)
 
 
 evalLit :: Lit -> Evaluator Value
@@ -75,14 +77,14 @@ evalVar v = do
   env <- get
   return $ case Map.lookup v env of
              Just v  -> v
-             Nothing -> error $ "variable "++v++" not found"
+             Nothing -> evalError $ "variable "++v++" not found"
 
 evalIf :: Expr -> Expr -> Expr -> Evaluator Value
 evalIf cond eT eF = do
   res <- eval cond
   case res of
     (VBool r) -> if r then (eval eT) else (eval eF)
-    _ -> error "condition in if is not a bool"
+    _ -> evalError "condition in if is not a bool"
 
 evalApp :: Expr -> Expr -> Evaluator Value
 evalApp e1 e2 = do
@@ -95,7 +97,7 @@ evalApp e1 e2 = do
       res <- eval c'
       put $ env
       return res
-    _ -> error "object not applicable"
+    _ -> evalError "object not applicable"
 
 
 evalPrim :: String -> [Expr] -> Evaluator Value
@@ -104,9 +106,9 @@ evalPrim name [a,b] = let f = getPrim name in
     a' <- eval a
     b' <- eval b
     return $ f a' b'
-evalPrim f args = error $ "incorrect arguments: " ++ (show args) ++ ", in function: " ++ f
+evalPrim f args = evalError $ "incorrect arguments: " ++ (show args) ++ ", in function: " ++ f
 
-noFunction name = error $ "function "++ name ++ " not found"
+noFunction name = evalError $ "function "++ name ++ " not found"
 
 getPrim :: String -> BinOp
 getPrim name = maybe (noFunction name) id primitiveFuncs
@@ -115,11 +117,11 @@ getPrim name = maybe (noFunction name) id primitiveFuncs
 
 applyVFloat :: (Float -> Float -> Float) -> BinOp
 applyVFloat f (VFloat a) (VFloat b) = VFloat (f a b)
-applyVFloat _ _ _ = error $ "function has wrong type of arguments"
+applyVFloat _ _ _ = evalError $ "function has wrong type of arguments"
 
 applyVInt :: (Int -> Int -> Int) -> BinOp
 applyVInt f (VInt a) (VInt b) = VInt (f a b)
-appyVInt _ _ _ = error $ "function has wrong type of arguments"
+appyVInt _ _ _ = evalError $ "function has wrong type of arguments"
 
 primIntOps :: [(String, BinOp)]
 primIntOps = [ ("+", applyVInt (+) )
