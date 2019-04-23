@@ -58,6 +58,9 @@ data Expr
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
 
+isDef Def{} = True
+isDef _ = False
+
 class ToAST p q where
   toAST :: p -> Either [String] q
 
@@ -128,6 +131,7 @@ pPatterns :: Parser [Expr]
 pPatterns = do
   lhs <- toAST <$> takeWhileP (Just "Pattern") (\case
                                          (CleanVar "->") -> False
+                                         (CleanVar _) -> False --- for now, patterns are only valid vars
                                          _ -> True)
   case lhs of
       Left e     -> fail $ concat e

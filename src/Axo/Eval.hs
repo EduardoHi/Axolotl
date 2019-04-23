@@ -66,7 +66,7 @@ evalLit x = return $ case x of
                        -- ...
 
 evalDefine :: String -> String -> Expr -> Evaluator Value
-evalDefine fname arg body = do
+evalDefine fname args body = do
   env <- get
   let newc = VClosure arg body env
   put $ extend env fname newc

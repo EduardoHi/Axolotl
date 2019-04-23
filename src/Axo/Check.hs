@@ -19,6 +19,9 @@ type Env = Map.Map String Type
 
 emptyTypeEnv = Map.empty
 
+extendAll :: [(String,Type)] -> Env -> Env
+extendAll xs env = Map.union env (Map.fromList xs)
+
 extend :: String -> Type -> Env -> Env
 extend name ty env = Map.insert name ty env
 
@@ -38,9 +41,10 @@ type Check = ExceptT TypeError (Reader Env)
 
 
 inEnv :: (Name, Type) -> Check a -> Check a
-inEnv (x,t) c = do
-  local (extend x t) c
+inEnv (x,t) c = local (extend x t) c
 
+inEnvAll :: [(Name,Type)] -> Check a -> Check a
+inEnvAll xts c = local (extendAll xts) c
 
 lookupVar :: String -> Check Type
 lookupVar v = do
@@ -48,6 +52,12 @@ lookupVar v = do
   case Map.lookup v env of
     Just e  -> return e
     Nothing -> throwError $ UnboundVar v
+
+defToPairType :: Expr -> (String, Maybe Type)
+defToPairType (Def s _ _ t) = (s, t)
+
+checks :: [Expr] -> Check Type
+checks exprs = let defs = filter isDef exprs in undefined
 
 check :: Expr -> Check Type
 check expr = case expr of
@@ -63,14 +73,15 @@ check expr = case expr of
     rhs <- inEnv (name,fromJust ty) (check body) -- inEnv (name undefined)
     return (TArr [fromJust ty,rhs])
 
-  Def fname arg body ty -> do
+  Def fname args body ty -> do
     -- if type signature is specified,
     -- we already know the type of the function
     -- then only check that body is correct too.
     -- else infer type.
 
-    -- we need to extend all the current scope of the function with this function's name
-    inEnv (arg, fromJust ty) (check body)
+    inEnvAll (args, fromJust ty) (check body)
+    -- TODO we also need to extend every argument with it's type
+
     return (fromJust ty)
 
   If cond eT eF -> do
