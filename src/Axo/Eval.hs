@@ -5,15 +5,18 @@ import Axo.AST
 import qualified Data.Map as Map
 import Control.Monad.State.Strict
 
-type ArgName = String
-
 evalError msg = error msg
+
+
 
 data Value
   = VInt Int
   | VFloat Float
-  | VClosure ArgName Expr Env
+  | VClosure Name Expr Env -- arg name, body expr, scope
   | VBool Bool
+  | VConstr Name           -- the Constructor function e.g. True, Just  , Left
+  | VADT Name [Value]      -- Data Constructor Applied e.g. True, Just 1, Left "error"...  -- "in memory representation", the name of the constructor cannot be erased so that it can be pattern matched
+  | VAST Expr              -- "AST" value, to make eval a total function in cases where a value makes no sense, e.g. on a data declaration
   deriving Show
 
 -- Note [Eval Function Application]
@@ -35,6 +38,9 @@ type BinOp = Value -> Value -> Value
 extend :: Env -> String -> Value -> Env
 extend env name value = Map.insert name value env
 
+extendAll :: Env -> [(String,Value)] -> Env
+extendAll env xs = Map.union env (Map.fromList xs)
+
 type Evaluator = State Env
 
 runEval :: Env -> Expr -> (Value, Env)
@@ -47,7 +53,7 @@ eval term = do
   case term of
     (Lit l) -> evalLit l
     (Var v) -> evalVar v
-    (Type t) -> return $ if t == "True" then (VBool True) else (VBool False) -- UGLY HACK, need to fix how type constructors are handled
+    (Type t) -> evalVar t
     (Def fname arg body _) ->     -- (define add2 x -> {x + 2})
       evalDefine fname arg body
     (If cond expT expF) ->      -- (if condition if-true if-false)
@@ -59,6 +65,9 @@ eval term = do
     (App e1 e2) ->              -- See Note [Eval Function Application]
       -- TODO: Multiple arguments, i.e. every element of e2, not only the head
       evalApp e1 (head e2)
+    d@(Data _ constrs) -> do
+      evalData constrs
+      return $ VAST d
     x -> evalError $ "failed to match pattern: " ++ (show x)
 
 
@@ -67,6 +76,16 @@ evalLit x = return $ case x of
                        (LitInt i) -> VInt i
                        (LitFloat f) -> VFloat f
                        -- ...
+
+evalData :: [Constrs] -> Evaluator ()
+evalData constructors = do
+  env <- get
+  -- if the constructor is a function type, add it as a VConstr
+  -- otherwise, add it as a Value of an ADT
+  let names = map (\(name, t) -> if isTArr t
+                                 then (name,VConstr name)
+                                 else (name, VADT name [])) constructors
+  put $ extendAll env names
 
 evalDefine :: String -> String -> [Expr] -> Evaluator Value
 evalDefine fname arg body = do

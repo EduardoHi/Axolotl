@@ -92,11 +92,9 @@ pInSexp p = do
 -- | parses the symbol '::', followed by a Type, and a sequence of zero or more ( '->' followed by a Type)
 pTypeSeq :: Parser [CleanExp]
 pTypeSeq = do
-  pVar "::"
-  pInSexp $ do
-    ty  <- pAnyType
-    tys <- (some $ pArr *> (pAnyType))
-    return $ (ty:tys)
+  ty  <- pAnyType
+  tys <- (some $ pArr *> (pAnyType))
+  return $ (ty:tys)
 
 --- "Lexer" 
 

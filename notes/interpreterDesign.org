@@ -15,5 +15,8 @@ e.g.
 
 <lambda declaration> = (\ <pattern> [<type definition>] -> <body>)
 
+* Data Declaration
 
-(data <Type Name> (Constr_1 t1 .. tn) ... (Constr_n t1 .. tn))
+<data declaration> = (data <Type Name> {<Type Var>} -> {<constructor declaration>}+)
+
+<constructor declaration> = (<Constructor Name> {<Type Name> | <Type Var>}+)

@@ -13,6 +13,7 @@ import Control.Monad.Reader
 
 import Axo.AST
 
+
 type TypeEnv = Env
 
 type Env = Map.Map String Type
@@ -24,6 +25,7 @@ extendAll xs env = Map.union env (Map.fromList xs)
 
 extend :: String -> Type -> Env -> Env
 extend name ty env = Map.insert name ty env
+
 
 data TypeError
   = Mismatch [Type] [Type]
@@ -112,7 +114,11 @@ check expr = case expr of
       Just t -> throwError $ NotFunction t
       Nothing -> throwError $ UnboundVar f
 
-  Var n -> lookupVar n
+  Var n  -> lookupVar n
+  Type t -> lookupVar t
+
+  Data n _ -> return $ TADT n -- tbh this does not even needs to be checked
+
 
 runCheck :: Env -> Check a -> Either TypeError a  
 runCheck env = flip runReader env . runExceptT

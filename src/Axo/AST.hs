@@ -44,9 +44,20 @@ data Type
   = TInt        -- e.g. Int
   | TFloat      -- e.g. Float
   | TArr [Type] -- e.g. Int -> Int -> Int
-  | TCustom Name -- e.g. List
+  | TADT Name -- e.g. List
   -- ... user defined types
   deriving (Eq, Read, Show, Data)
+
+isTArr TArr{} = True
+isTArr _      = False
+
+appendTypes :: Type -> Type -> Type
+appendTypes (TArr []) t = t
+appendTypes t (TArr []) = t
+appendTypes (TArr ta) (TArr tb) = TArr (ta ++ tb)
+appendTypes (TArr ta) t = TArr (ta ++ [t])
+appendTypes t (TArr ta) = TArr (t:ta)
+appendTypes tx ty = TArr [tx,ty]
 
 type Name = String 
 
@@ -57,6 +68,8 @@ data Lit
   | LitChar Char     -- 'c'
   deriving (Show, Eq, Data)
 
+type Constrs = (Name,Type)
+
 data Expr
   = Var Name                          -- abc       -- a symbol
   | Type Name                         -- List      -- a capitalized symbol
@@ -66,7 +79,8 @@ data Expr
   | Lam Name Expr (Maybe Type)        -- (\x -> {x + 2})
   | If Expr Expr Expr                 -- (if {x > 0} "x is positive" "x is negative")
   | Def Name Name [Expr] (Maybe Type) -- (define f x -> {x + x})
-  | Prim Name [Expr]                  -- (*. 1.2 3.4)
+  | Prim Name [Expr]                  -- (*. 1.2 3.1)
+  | Data Name [Constrs]               -- (data Bool (True) (False))
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
@@ -112,6 +126,7 @@ pSexp = pInSexp $ pDefine <|>
         pIf <|>
         pLambda <|>
         pPrim <|>
+        pData <|>
         pApp
 
 -- | parses either a sexp form, or an atom
@@ -176,17 +191,23 @@ pSimplePattBody = do
 -- | parses the symbol '::', followed by a Type, and a sequence of zero or more ( '->' followed by a Type)
 pTypeDecl :: Parser Type
 pTypeDecl = do
-  types <- pTypeSeq
-  return $ case types of
-             [t] -> toType t
-             ts  -> TArr $ map toType ts
+  pVar "::"
+  pInSexp $ do
+    types <- pTypeSeq
+    return $ typeSeqToType types
+
+
+typeSeqToType :: [CleanExp] -> Type
+typeSeqToType es = case es of
+                     [t] -> toType t
+                     ts  -> TArr $ map toType ts
 
 -- | converts a CleanExp to Type Data, fails if given CleanExp is not constructed from CleanType
 toType :: CleanExp -> Type
 toType ce = case ce of
               (CleanType "Int") -> TInt
               (CleanType "Float") -> TFloat
-              (CleanType s) -> TCustom s
+              (CleanType s) -> TADT s
               x -> error $ "AST.hs: Expected a CleanType, got: " ++ (show x)
 
 -- | parses the symbol if, followed by 3 expressions, the condition, the expr if true, and the expr if false
@@ -214,3 +235,17 @@ pDefine = do
   typedecl <- optional pTypeDecl
   (args, body) <- (try pSimplePattBody) <|> pPattBody
   return $ Def fname (head $ map _varName args) body typedecl
+
+pConstrDecl :: Name -> Parser Constrs
+pConstrDecl tname = do
+  pInSexp $ do
+    (CleanType cname) <- pAnyType
+    args <- typeSeqToType <$> (many pAnyType)
+    return $ (cname, args `appendTypes` (TADT tname))
+
+pData :: Parser Expr
+pData = do
+  pVar "data"
+  (CleanType tname) <- pAnyType
+  constrs <- some (pConstrDecl tname)
+  return $ Data tname constrs
