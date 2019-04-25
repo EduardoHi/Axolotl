@@ -137,7 +137,6 @@ instance ToGraph Sexp where
 instance ToGraph Exp where
   toNode e@(ESexp s) = e `parentOf` s
   toNode e@(EAtom a) = e `parentOf` a
-  toNode e@(EIexp i) = e `parentOf` i
   toNode e@(EInfixexp i) = e `parentOf` i
   toNode e@(EComment c) = e `parentOf` c
 
@@ -146,13 +145,6 @@ instance ToGraph Comment where
 
 instance ToGraph ExpSeq where
   toNode e@(ExpSeq es) = es `childrenOf` e
-
-instance ToGraph Iexp where
-  toNode e@(Iexp head body) = do
-    p <- newNode (constrName e)
-    parentOf' (return p) (toNode head)
-    body `childrenOf'` (return p)
-    return p
 
 instance ToGraph InfixExp where
   toNode e@(InfixExp e1 e2 e3) = do

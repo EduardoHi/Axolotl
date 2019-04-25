@@ -17,9 +17,9 @@ stringInfix = (InfixExp
                         (EAtom (Literal (IntLit "3"))))
                         
 stringSExp = (CleanSexp [
-                    (CleanEAtom (Id (VarId "="))),
-                    (CleanEAtom (Id (VarId "x"))),
-                    (CleanEAtom (Literal (IntLit "3")))])
+                    (CleanVar "="),
+                    (CleanVar "x"),
+                    (CleanLit (IntLit "3"))])
 
 desugarSpec :: Spec
 desugarSpec = do
@@ -29,15 +29,7 @@ desugarSpec = do
          desugar (Program
                    [EAtom int123])
            `shouldBe`
-           CleanProgram [CleanEAtom int123]
-
-    context "Indent expression desugaring" $ do
-      it "desugars to a sexp" $ do
-        pending
-
-    context "Indent expression desugaring" $ do
-      it "desugars to a sexp" $ do
-        pending
+           CleanProgram [CleanLit (IntLit "123")]
 
     context "Infix expression desugaring" $ do
       it "desugars to a sexp" $ do
@@ -53,9 +45,6 @@ desugarSpec = do
         pending
 
       it "desugars an atom" $ do
-        pending
-
-      it "desugars an indent exp" $ do
         pending
 
       it "desugars an infix exp" $ do

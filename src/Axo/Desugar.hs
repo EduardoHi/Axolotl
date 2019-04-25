@@ -25,14 +25,10 @@ instance Desugar Exp (Maybe CleanExp) where
       (EComment _)  -> Nothing
       (ESexp s)     -> Just $ desugar s
       (EAtom a)     -> Just $ desugar a
-      (EIexp i)     -> Just $ desugar i
       (EInfixexp i) -> Just $ desugar i
 
 instance Desugar [Exp] [CleanExp] where
   desugar es = catMaybes $ map desugar es
-
-instance Desugar Iexp CleanExp where
-  desugar (Iexp header expseqs) = CleanSexp $ desugar $ joinExpSeqs (header:expseqs)
 
 -- the generalized Infix desugaring is more complex
 instance Desugar InfixExp CleanExp where

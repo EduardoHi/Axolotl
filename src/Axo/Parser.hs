@@ -117,8 +117,7 @@ program :: Parser Program
 program = Program <$> (many $ L.nonIndented scn topLevelExps) <* eof
   where topLevelExps = (EComment <$> comment) <|>
                        (EInfixexp <$> infixExp) <|>
-                       (ESexp <$> sExp) <|>
-                       (EIexp <$> indentExp)
+                       (ESexp <$> sExp)
 
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeqLn <?> "Sexpression"
@@ -151,18 +150,6 @@ infixExp = (do
   e3 <- expr
   char '}'
   return $ InfixExp e1 e2 e3) <?> "InfixExpression"
-
--- TODO: documentation for indentBlock says that: "Tokens must not consume newlines after them.
--- On the other hand, the first argument of this function must consume newlines among other white space characters."
--- let's check tokens do not consume newlines
-indentExp :: Parser Iexp
-indentExp = (uncurry Iexp) <$> L.indentBlock scn p
-  where
-    p = do
-      header <- iexpseq
-      return (L.IndentSome Nothing (return . (header, )) expSeq)
-    iexpseq = ExpSeq <$> ( (:) <$> (EAtom <$> (lexeme identifier)) <*> (many expr))
-
 
 atom :: Parser Atom
 atom = (try $ Literal <$> literal) <|> identifier <?> "Atom"

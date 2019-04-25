@@ -27,14 +27,11 @@ data Sexp = Sexp ExpSeq deriving (Show, Eq, Data, Typeable)
 
 data Exp = ESexp Sexp
          | EAtom Atom
-         | EIexp Iexp
          | EInfixexp InfixExp
          | EComment Comment
          deriving (Show, Eq, Data, Typeable)
 
 data ExpSeq = ExpSeq [Exp] deriving (Show, Eq, Data, Typeable)
-
-data Iexp = Iexp ExpSeq [ExpSeq] deriving (Show, Eq, Data, Typeable)
 
 data InfixExp = InfixExp Exp Exp Exp deriving (Show, Eq, Data, Typeable)
 
