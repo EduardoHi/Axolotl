@@ -44,8 +44,10 @@ data Type
   = TInt        -- e.g. Int
   | TFloat      -- e.g. Float
   | TArr [Type] -- e.g. Int -> Int -> Int
-  | TADT Name -- e.g. List
-  -- ... user defined types
+  | TADT Name   -- e.g. List
+  | TAny        -- infamous and hacky Any type, but needed, because of lack of inference :(
+                -- things without a type signature are marked as any and never fail to check
+                -- Any equals Any even if they are different. so that's absurd.
   deriving (Eq, Read, Show, Data)
 
 isTArr TArr{} = True
@@ -85,11 +87,14 @@ data Expr
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
 
-isDef Def{} = True
-isDef _ = False
+isDef Def{}   = True
+isDef _       = False
 
-isVar Var{} = True
-isVar _ = False
+isData Data{} = True
+isData _      = False
+
+isVar Var{}   = True
+isVar _       = False
 
 _varName (Var n) = n
 

@@ -14,7 +14,13 @@ import Axo.ToGraph (showGraph, toGraph, ToGraph)
 import Axo.ParseTree (Program(..), CleanProgram(..), CleanExp)
 import Axo.Desugar (desugar)
 import qualified Axo.AST as AST (toAST, Program(..), Expr, Type)
-import Axo.Check (TypeEnv, checkTop, emptyTypeEnv, typeErrorPretty)
+import Axo.Check
+       ( TypeEnv
+       , checkTop
+       , checkProgram
+       , emptyTypeEnv
+       , typeErrorPretty
+       )
 
 import Flags
 
@@ -158,9 +164,14 @@ tAST p = do
       return ast
 
 -- | Type Check that the Program is well-typed
-tCheckP :: AST.Program -> CompilerM [AST.Type]
+tCheckP :: AST.Program -> CompilerM TypeEnv
 tCheckP (AST.Program exps) = do
-  mapM tCheckE exps
+  tyenv <- gets _tyenv
+  case checkProgram tyenv exps of
+    Left e  -> throwError $ typeErrorPretty e
+    Right (_, tyenv') -> do
+      modify (\x -> x {_tyenv = tyenv'})
+      return tyenv'
 
 -- | Type Check that the Expression is well-typed
 tCheckE :: AST.Expr -> CompilerM AST.Type
@@ -168,7 +179,9 @@ tCheckE e = do
   tyenv <- gets _tyenv
   case checkTop tyenv e of
     Left e   -> throwError $ typeErrorPretty e
-    Right ty -> return ty
+    Right (t, tyenv') -> do
+      modify (\x -> x {_tyenv = tyenv'})
+      return t
 
 --- End Transformations
 

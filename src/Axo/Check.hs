@@ -1,6 +1,7 @@
 module Axo.Check
   ( TypeEnv
   , checkTop
+  , checkProgram
   , emptyTypeEnv
   , typeErrorPretty
   ) where
@@ -55,11 +56,25 @@ lookupVar v = do
     Just e  -> return e
     Nothing -> throwError $ UnboundVar v
 
-defToPairType :: Expr -> (String, Maybe Type)
-defToPairType (Def s _ _ t) = (s, t)
+defToPairType :: Expr -> (String, Type)
+defToPairType (Def s _ _ t) = case t of
+                                Nothing -> (s, TAny)
+                                Just t' -> (s, t')
 
-checks :: [Expr] -> Check Type
-checks exprs = let defs = filter isDef exprs in undefined
+parenScope :: [Expr] -> [(Name, Type)]
+parenScope exprs = let defs  = filter isDef  exprs
+                       datas = filter isData exprs in
+                     (map defToPairType defs) ++ (concatMap getConstrs datas)
+  where getConstrs (Data _ cs) = cs
+
+
+-- the type of an expression list is the last expression
+checkExprs :: [Expr] -> Check (Type, Env)
+checkExprs xs = do
+  let parenEnv = parenScope xs
+  tys <- inEnvAll parenEnv (mapM check xs)
+  env <- ask
+  return (head tys, extendAll parenEnv env)
 
 check :: Expr -> Check Type
 check expr = case expr of
@@ -75,16 +90,23 @@ check expr = case expr of
     rhs <- inEnv (name,fromJust ty) (check body) -- inEnv (name undefined)
     return (TArr [fromJust ty,rhs])
 
-  Def fname args body (Just ty@(TArr tys)) -> do
+  Def fname args body ty -> do
     -- if type signature is specified,
     -- we already know the type of the function
     -- then only check that body is correct too.
-    -- else infer type.
---    inEnvAll (zipWith (,) args tys) (checks body)
-    inEnv (fname, ty) (checks body)
-    -- TODO we also need to extend every argument with it's type
+    -- else type is any.
 
-    return ty
+    case ty of
+      Nothing -> return TAny
+      Just ty@(TArr tys) -> do
+        --    let argtys =  zipWith (,) args (init tys) not this right now, because defs are single argument rn
+        inEnvAll [(fname, ty),(args, (head tys))] (checkExprs body)
+        -- TODO we also need to extend every argument with it's type
+        return ty
+      Just ty -> do
+        inEnv (fname, ty) (checkExprs body)
+        -- TODO we also need to extend every argument with it's type
+        return ty
 
   If cond eT eF -> do
     -- cond should be a boolean
@@ -103,6 +125,7 @@ check expr = case expr of
     case t1 of
       (TArr argtypes) | (init argtypes) == targs -> return $ last argtypes
                       | otherwise -> throwError $ Mismatch (init argtypes) targs
+      TAny -> return TAny
       t -> throwError $ NotFunction t
 
   Prim f args -> do
@@ -111,6 +134,7 @@ check expr = case expr of
     case ft of
       Just (TArr argtypes) | (init argtypes) == targs -> return $ last argtypes
                            | otherwise -> throwError $ Mismatch (init argtypes) targs
+      Just TAny -> return TAny
       Just t -> throwError $ NotFunction t
       Nothing -> throwError $ UnboundVar f
 
@@ -119,12 +143,17 @@ check expr = case expr of
 
   Data n _ -> return $ TADT n -- tbh this does not even needs to be checked
 
+  x -> error $ "failed to match pattern: " ++ (show x)
+
 
 runCheck :: Env -> Check a -> Either TypeError a  
 runCheck env = flip runReader env . runExceptT
 
-checkTop :: Env -> Expr -> Either TypeError Type
-checkTop env x = runCheck env $ (check x)
+checkTop :: Env -> Expr -> Either TypeError (Type, Env)
+checkTop env x = runCheck env $ (checkExprs [x])
+
+checkProgram :: Env -> [Expr] -> Either TypeError (Type, Env)
+checkProgram env exps = runCheck env $ (checkExprs exps)
 
 checkWithPrim expr = runCheck primEnv (check expr)
 

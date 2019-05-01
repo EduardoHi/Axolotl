@@ -8,7 +8,7 @@ import qualified Data.Map as Map
 import System.Console.Repline
 
 
-import Compiler (emptyState, runCompilerM, loadExpr, loadFile, CompilerState)
+import Compiler (emptyState, runCompilerM, loadExpr, loadFile, CompilerState(..))
 
 import Axo.Eval
 import qualified Axo.AST as AST (Expr(..), Program(..))
@@ -64,6 +64,12 @@ env _ = do
   currentEnv <- gets _env
   liftIO $ mapM_ (\(k,v) -> putStrLn $ k ++ ": " ++ (show v)) $ Map.mapWithKey (,) currentEnv
 
+tyenv :: [String] -> Repl ()
+tyenv _ = do
+  cstate <- gets _cstate
+  let currentTypeEnv = _tyenv cstate
+  liftIO $ mapM_ (\(k,v) -> putStrLn $ k ++ ": " ++ (show v)) $ Map.mapWithKey (,) currentTypeEnv
+
 load :: [String] -> Repl ()
 load args = do
   cstate <- gets _cstate
@@ -90,6 +96,7 @@ options :: [(String, [String] -> Repl ())]
 options = [ ("help", help)    -- :help
           , ("env", env)      -- :env
           , ("t", tycheck)    -- :t
+          , ("typenv", tyenv) -- :typenv
           , ("type", tycheck) -- :type
           , ("load", load)    -- :load
           ]
