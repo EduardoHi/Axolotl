@@ -83,7 +83,7 @@ evalData constructors = do
   -- if the constructor is a function type, add it as a VConstr
   -- otherwise, add it as a Value of an ADT
   let names = map (\(name, t) -> if isTArr t
-                                 then (name,VConstr name)
+                                 then (name, VConstr name)
                                  else (name, VADT name [])) constructors
   put $ extendAll env names
 
@@ -111,14 +111,17 @@ evalIf cond eT eF = do
 evalApp :: Expr -> Expr -> Evaluator Value
 evalApp e1 e2 = do
   env <- get
-  closure <- eval e1
-  case closure of
+  objtoapply <- eval e1
+  case objtoapply of
     (VClosure param c' env') -> do
       v <- eval e2
       put $ extend env' param v
       res <- eval c'
       put $ env
       return res
+    (VConstr name) -> do
+      v <- eval e2
+      return $ VADT name [v]
     _ -> evalError "object not applicable"
 
 
