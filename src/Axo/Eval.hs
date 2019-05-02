@@ -12,7 +12,7 @@ evalError msg = error msg
 data Value
   = VInt Int
   | VFloat Float
-  | VClosure Name Expr Env -- arg name, body expr, scope
+  | VClosure [Name] Expr Env -- arg name, body expr, scope
   | VBool Bool
   | VConstr Name           -- the Constructor function e.g. True, Just  , Left
   | VADT Name [Value]      -- Data Constructor Applied e.g. True, Just 1, Left "error"...  -- "in memory representation", the name of the constructor cannot be erased so that it can be pattern matched
@@ -54,17 +54,17 @@ eval term = do
     (Lit l) -> evalLit l
     (Var v) -> evalVar v
     (Type t) -> evalVar t
-    (Def fname arg body _) ->     -- (define add2 x -> {x + 2})
-      evalDefine fname arg body
-    (If cond expT expF) ->      -- (if condition if-true if-false)
+    (Def fname args body _) -> -- (define add2 x -> {x + 2})
+      evalDefine fname args body
+    (If cond expT expF) ->     -- (if condition if-true if-false)
       evalIf cond expT expF
-    (Lam arg body _) ->           -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
+    (Lam arg body) ->          -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
       return $ VClosure arg body env
     (Prim f args) ->
       evalPrim f args
-    (App e1 e2) ->              -- See Note [Eval Function Application]
+    (App e1 es) ->             -- See Note [Eval Function Application]
       -- TODO: Multiple arguments, i.e. every element of e2, not only the head
-      evalApp e1 (head e2)
+      evalApp e1 es
     d@(Data _ constrs) -> do
       evalData constrs
       return $ VAST d
@@ -87,10 +87,10 @@ evalData constructors = do
                                  else (name, VADT name [])) constructors
   put $ extendAll env names
 
-evalDefine :: String -> String -> [Expr] -> Evaluator Value
-evalDefine fname arg body = do
+evalDefine :: String -> [String] -> [Expr] -> Evaluator Value
+evalDefine fname args body = do
   env <- get
-  let newc = VClosure arg (head body) env
+  let newc = VClosure args (head body) env
   put $ extend env fname newc
   return newc
 
@@ -108,20 +108,22 @@ evalIf cond eT eF = do
     (VBool r) -> if r then (eval eT) else (eval eF)
     _ -> evalError "condition in if is not a bool"
 
-evalApp :: Expr -> Expr -> Evaluator Value
-evalApp e1 e2 = do
+evalApp :: Expr -> [Expr] -> Evaluator Value
+evalApp e1 es = do
   env <- get
   objtoapply <- eval e1
   case objtoapply of
-    (VClosure param c' env') -> do
-      v <- eval e2
-      put $ extend env' param v
+    (VClosure params c' env') -> do
+--      v <- eval e2
+      bindings <- (zipWith (,) params) <$> (mapM eval es)
+      put $ extendAll env' bindings
       res <- eval c'
       put $ env
       return res
     (VConstr name) -> do
-      v <- eval e2
-      return $ VADT name [v]
+--      v <- eval e2
+      args <- mapM eval es
+      return $ VADT name args
     _ -> evalError "object not applicable"
 
 

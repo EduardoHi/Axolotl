@@ -7,5 +7,5 @@
 -- - first class funcs
 -- - infix expression
 
-(define a-plus-abs-b
+(define aPlusAbsB
     (a b -> (if {b > 0} + -) a b))

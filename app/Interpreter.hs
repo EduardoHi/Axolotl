@@ -3,7 +3,6 @@ module Interpreter where
 
 
 import Control.Monad.State.Strict
-import Data.List
 import qualified Data.Map as Map
 import System.Console.Repline
 
@@ -25,7 +24,6 @@ type Repl a = HaskelineT (StateT InterpreterState IO) a
 -- Evaluation : handle each line user inputs
 interpret :: String -> Repl ()
 interpret input = do
-  env  <- gets _env
   cstate <- gets _cstate
   (res, cstate') <- liftIO $ runCompilerM (loadExpr input) cstate
   modify $ \is -> is {_cstate = cstate'}

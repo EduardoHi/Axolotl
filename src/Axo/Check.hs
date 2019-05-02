@@ -27,6 +27,13 @@ extendAll xs env = Map.union env (Map.fromList xs)
 extend :: String -> Type -> Env -> Env
 extend name ty env = Map.insert name ty env
 
+eq :: Type -> Type -> Bool
+eq TAny _ = True
+eq _ TAny = True
+eq t1 t2 = t1 == t2
+
+eqs :: [Type] -> [Type] -> Bool
+eqs xs ys = and $ zipWith eq xs ys
 
 data TypeError
   = Mismatch [Type] [Type]
@@ -84,11 +91,12 @@ check expr = case expr of
   -- ... LitChar   ?
   -- TODO checks for other literals
 
-  Lam name body ty -> do
+  Lam names body -> do
     -- this throws and exception when there is no type specified,
     -- change to being inferable later
-    rhs <- inEnv (name,fromJust ty) (check body) -- inEnv (name undefined)
-    return (TArr [fromJust ty,rhs])
+    let nts = map (\n -> (n,TAny)) names
+    rhs <- inEnvAll nts (check body) -- inEnv (name undefined)
+    return $ TArr $ (map snd nts)++[rhs]
 
   Def fname args body ty -> do
     -- if type signature is specified,
@@ -99,8 +107,8 @@ check expr = case expr of
     case ty of
       Nothing -> return TAny
       Just ty@(TArr tys) -> do
-        --    let argtys =  zipWith (,) args (init tys) not this right now, because defs are single argument rn
-        inEnvAll [(fname, ty),(args, (head tys))] (checkExprs body)
+        let argtys = zipWith (,) args (init tys)
+        inEnvAll ((fname, ty):argtys) (checkExprs body)
         -- TODO we also need to extend every argument with it's type
         return ty
       Just ty -> do
@@ -123,7 +131,7 @@ check expr = case expr of
     t1 <- check e
     targs <- mapM check args
     case t1 of
-      (TArr argtypes) | (init argtypes) == targs -> return $ last argtypes
+      (TArr argtypes) | (init argtypes) `eqs` targs -> return $ last argtypes
                       | otherwise -> throwError $ Mismatch (init argtypes) targs
       TAny -> return TAny
       t -> throwError $ NotFunction t
@@ -132,7 +140,7 @@ check expr = case expr of
     let ft = Map.lookup f primEnv
     targs <- mapM check args
     case ft of
-      Just (TArr argtypes) | (init argtypes) == targs -> return $ last argtypes
+      Just (TArr argtypes) | (init argtypes) `eqs` targs -> return $ last argtypes
                            | otherwise -> throwError $ Mismatch (init argtypes) targs
       Just TAny -> return TAny
       Just t -> throwError $ NotFunction t

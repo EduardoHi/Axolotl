@@ -73,16 +73,16 @@ data Lit
 type Constrs = (Name,Type)
 
 data Expr
-  = Var Name                          -- abc       -- a symbol
-  | Type Name                         -- List      -- a capitalized symbol
-  | Lit Lit                           -- a literal
-  | App Expr [Expr]                   -- (f a b c) -- apply function f, to arguments a b c
-                                      -- "special forms" -- see Note [Special Forms]
-  | Lam Name Expr (Maybe Type)        -- (\x -> {x + 2})
-  | If Expr Expr Expr                 -- (if {x > 0} "x is positive" "x is negative")
-  | Def Name Name [Expr] (Maybe Type) -- (define f x -> {x + x})
-  | Prim Name [Expr]                  -- (*. 1.2 3.1)
-  | Data Name [Constrs]               -- (data Bool (True) (False))
+  = Var Name                            -- abc       -- a symbol
+  | Type Name                           -- List      -- a capitalized symbol
+  | Lit Lit                             -- a literal
+  | App Expr [Expr]                     -- (f a b c) -- apply function f, to arguments a b c
+                                        -- "special forms" -- see Note [Special Forms]
+  | Lam [Name] Expr                     -- (\x -> {x + 2})
+  | If Expr Expr Expr                   -- (if {x > 0} "x is positive" "x is negative")
+  | Def Name [Name] [Expr] (Maybe Type) -- (define f x -> {x + x})
+  | Prim Name [Expr]                    -- (*. 1.2 3.1)
+  | Data Name [Constrs]                 -- (data Bool (True) (False))
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
@@ -225,11 +225,11 @@ pIf = do
 -- followed by an argument, an arrow, and then the body
 pLambda = do
   oneOf $ map CleanVar ["\\", "lambda", "λ"]
-  (CleanVar arg) <- pAnyVar
-  typedecl <- optional pTypeDecl
+--  (CleanVar arg) <- pAnyVar
+  args <- pPatterns
   pArr
   body <- pExpr
-  return $ Lam arg body typedecl
+  return $ Lam (map _varName args) body
 
 -- | parses a define expression, the symbol "define", an optional type declaration,
 -- followed by a simple pattern-body, or a sequence of pattern bodies.
@@ -239,7 +239,7 @@ pDefine = do
   (CleanVar fname) <- pAnyVar
   typedecl <- optional pTypeDecl
   (args, body) <- (try pSimplePattBody) <|> pPattBody
-  return $ Def fname (head $ map _varName args) body typedecl
+  return $ Def fname (map _varName args) body typedecl
 
 pConstrDecl :: Name -> Parser Constrs
 pConstrDecl tname = do
