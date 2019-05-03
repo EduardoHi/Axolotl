@@ -48,6 +48,41 @@ appendTypes tx ty = TArr [tx,ty]
 
 type Name = String 
 
+data Pattern
+  = PVar Name
+  | PCon Name [Pattern]
+  | PLit Lit
+  deriving (Eq, Show, Data)
+
+-- Match is a single "function line"
+-- e.g.
+
+-- (define map
+--     (f []       -> [])
+--     (f {x : xs} -> {(f x) : (map f xs)}))
+
+-- is transformed to:
+-- Def "map" [
+--             Match
+--               { _matchPat = [PVar "f", PCon "Nil" [] ]
+--               , _matchBody = Var "Nil"
+--               }
+--           , Match
+--               { _matchPat = [PVar "f", PCon "Cons" [PVar "x", PVar "xs"] ]
+--               , _matchBody =
+--                   App (Var ":")
+--                   [ App (Var "f") [Var "x"],
+--                     App (Var "map") [Var "f", Var "xs"]
+--                   ]
+--               }
+--           ]
+--
+
+data Match = Match
+  { _matchPat :: [Pattern]
+  , _matchBody :: Expr
+  } deriving (Eq, Show, Data)
+
 data Lit
   = LitInt Int       -- 10
   | LitFloat Float   -- 1.2
@@ -65,9 +100,10 @@ data Expr
                                         -- "special forms" -- see Note [Special Forms]
   | Lam [Name] Expr                     -- (\x -> {x + 2})
   | If Expr Expr Expr                   -- (if {x > 0} "x is positive" "x is negative")
-  | Def Name [Name] [Expr] (Maybe Type) -- (define f x -> {x + x})
+  | Def Name [Match] (Maybe Type)       -- (define f x -> {x + x})
   | Prim Name [Expr]                    -- (*. 1.2 3.1)
   | Data Name [Constrs]                 -- (data Bool (True) (False))
+  | Case Expr [Match]
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)

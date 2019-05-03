@@ -63,7 +63,7 @@ lookupVar v = do
     Nothing -> throwError $ UnboundVar v
 
 defToPairType :: Expr -> (String, Type)
-defToPairType (Def s _ _ t) = case t of
+defToPairType (Def s _ t) = case t of
                                 Nothing -> (s, TAny)
                                 Just t' -> (s, t')
 

@@ -89,7 +89,7 @@ pInSexp p = do
     (CleanSexp exps) -> case process "inside s-exp" p exps of
                           Left errors -> fail $ concat errors
                           Right exp -> return exp
-    _                -> fail $ "Expected a CleanSexp, got " ++ (prettyText next)
+    _                -> fail $ "Expected a CleanSexp, got: " ++ (show next)
 
 -- | parses the symbol '::', followed by a Type, and a sequence of zero or more ( '->' followed by a Type)
 pTypeSeq :: Parser [CleanExp]
@@ -98,10 +98,21 @@ pTypeSeq = do
   tys <- (some $ pArr *> (pAnyType))
   return $ (ty:tys)
 
+--pWhile :: Parser a -> (CleanExp -> Bool) -> Parser [a]
+pSatisfy :: Parser a -> (CleanExp -> Bool) -> Parser a
+pSatisfy p pred = do
+  next <- lookAhead anySingle
+  if pred next
+    then p
+    else fail ""
+
+pWhile :: Parser a -> (CleanExp -> Bool) -> Parser [a]
+pWhile p pred = some $ pSatisfy p pred
+
 --- "Lexer" 
 
 pAnyVar :: Parser CleanExp
-pAnyVar  = satisfy isVar  <?> "CleanVar"
+pAnyVar  = satisfy isCVar <?> "CleanVar"
 
 pAnyType :: Parser CleanExp
 pAnyType = satisfy isType <?> "CleanType"
@@ -135,5 +146,5 @@ isType _ =           False
 isLit CleanLit{} = True
 isLit _ =          False
 
-isVar CleanVar{} = True
-isVar _ =          False
+isCVar CleanVar{} = True
+isCVar _ =          False
