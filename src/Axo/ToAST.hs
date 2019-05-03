@@ -143,9 +143,9 @@ pDefine :: Parser Expr
 pDefine = do
   pVar "define"
   (CleanVar fname) <- pAnyVar
---  typedecl <- optional pTypeDecl
+  typedecl <- optional pTypeDecl
   matches <- (singleton <$> try pSinglePattBody) <|> pPattBody
-  return $ Defun fname matches (Just TInt) --typedecl
+  return $ Def fname matches typedecl
   where singleton x = [x]
 
 -- | parses a list of patterns, used in the left-hand side of a definition
@@ -155,8 +155,7 @@ pPatterns = pWhile pPattern (\x -> x /= (CleanVar "->"))
 -- | parses a single pattern (variable, literal, or a constructor)
 pPattern :: Parser Pattern
 pPattern = do
-  exprToPatt <$> pAtom
---  exprToPatt <$> ((try pAtom) <|> pApp)
+  exprToPatt <$> ((try pAtom) <|> pApp)
   where exprToPatt a = case a of
                          Var v          -> PVar v
                          Type t         -> PCon t []
@@ -174,7 +173,7 @@ pSinglePattBody = do
   args <- pPatterns
   pArr
   body <- pExpr
-  return $ Match args body -- (args, body)
+  return $ Match args body
 
 pConstrDecl :: Name -> Parser Constrs
 pConstrDecl tname = do
@@ -189,3 +188,4 @@ pData = do
   (CleanType tname) <- pAnyType
   constrs <- some (pConstrDecl tname)
   return $ Data tname constrs
+

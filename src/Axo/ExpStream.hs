@@ -95,7 +95,7 @@ pInSexp p = do
 pTypeSeq :: Parser [CleanExp]
 pTypeSeq = do
   ty  <- pAnyType
-  tys <- (some $ pArr *> (pAnyType))
+  tys <- (many $ pArr *> pAnyType)
   return $ (ty:tys)
 
 --pWhile :: Parser a -> (CleanExp -> Bool) -> Parser [a]
@@ -107,7 +107,11 @@ pSatisfy p pred = do
     else fail ""
 
 pWhile :: Parser a -> (CleanExp -> Bool) -> Parser [a]
-pWhile p pred = some $ pSatisfy p pred
+pWhile p pred = many $ pSatisfy p pred
+
+pWhile1 :: Parser a -> (CleanExp -> Bool) -> Parser [a]
+pWhile1 p pred = some $ pSatisfy p pred
+
 
 --- "Lexer" 
 
