@@ -1,0 +1,10 @@
+
+
+-- e.g. (mappairs f xs ys)
+-- mappairs applies the function f to corresponding pairs from the list xs and ys
+
+(define mappairs
+    (f [] ys		 -> [])
+    (f {x : xs} []	 -> [])
+    (f {x : xs} {y : ys} -> {(f x y) : (mappairs f xs ys)}))
+

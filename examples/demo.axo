@@ -1,0 +1,12 @@
+
+--- demo function from "The implementation of Functional Programming Languages" page 82, translated to axo
+
+
+(define demo
+    (f [] ys             -> (a f ys))
+    (f {x : xs} []       -> (b f x xs))
+    (f {x : xs} {y : ys} -> (c f x xs y ys)))
+
+
+-- (define demo
+--     (f xs -> (a f xs)))

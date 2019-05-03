@@ -1,0 +1,20 @@
+
+
+
+-- algebraic data types
+
+(data Unit (Unit))
+(data Empty)
+(data Product (Product a b)) -- a * b
+(data Sum (Left a) (Right b)) -- a + b
+(data Exp (Exp (a -> b))  -- a^b
+(data Rec (Rec (f (Rec f)) -- \mu μ
+
+
+(data Either (Left String) (Right Int))
+(data Bool (True) (False))
+
+(data List (Cons a List) (Nil))
+
+(data Tuple (Tuple a b)) 
+
