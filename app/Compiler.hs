@@ -13,7 +13,8 @@ import Axo.Parser (parseProgram, parseExpr)
 import Axo.ToGraph (showGraph, toGraph, ToGraph)
 import Axo.ParseTree (Program(..), CleanProgram(..), CleanExp)
 import Axo.Desugar (desugar)
-import qualified Axo.AST as AST (toAST, Program(..), Expr, Type)
+import qualified Axo.AST as AST (Program(..), Expr, Type)
+import Axo.ToAST (toAST)
 import Axo.Check
        ( TypeEnv
        , checkTop
@@ -148,7 +149,7 @@ tDesugar p = do
 -- | Transforms a clean expression to an AST
 tExp :: CleanExp -> CompilerM AST.Expr
 tExp e = do
-  case AST.toAST e of
+  case toAST e of
     Left e    -> throwError $ intercalate "\n\n" e
     Right ast -> do
       modify (\x -> x {_ast = Just (AST.Program [ast])})
@@ -157,7 +158,7 @@ tExp e = do
 -- | Transforms a clean Program to an AST
 tAST :: CleanProgram -> CompilerM AST.Program
 tAST p = do
-  case AST.toAST p of
+  case toAST p of
     Left e    -> throwError $ intercalate "\n\n" e
     Right ast -> do
       modify (\x -> x {_ast = Just ast})

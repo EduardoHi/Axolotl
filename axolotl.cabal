@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7efa4fd5d7d61113307e0b219e5b297964cc4a145c3b2078cbd3d1e377872c8c
+-- hash: 8e56e248b7f52f5bb8f3bcd41104f7a78bf89c5bcdd086ba170063899c5409cd
 
 name:           axolotl
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       Axo.Parser
       Axo.ParseTree
       Axo.PrettyPrinter
+      Axo.ToAST
       Axo.ToGraph
       Axo.ToyInterpreter
   other-modules:

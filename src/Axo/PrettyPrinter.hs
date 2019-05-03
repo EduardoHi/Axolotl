@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Axo.PrettyPrinter where
 
@@ -74,6 +75,9 @@ instance Pretty CleanExp where
   pretty (CleanLit  x) = pretty x
   pretty (CleanVar  x) = text x
   pretty (CleanType x) = text x
+
+instance Pretty [CleanExp] where
+  pretty xs = hsep $ map  pretty xs
 
 -- -- AST pretty printing --
 

@@ -20,6 +20,7 @@ import qualified Data.List          as DL
 import qualified Data.List.NonEmpty as NE
 
 import Axo.ParseTree(CleanExp(..))
+import Axo.PrettyPrinter
 
 import Text.Megaparsec
 
@@ -56,19 +57,20 @@ instance Stream ExpStream where
 
   showTokens Proxy = DL.intercalate ", "
     . NE.toList
-    . fmap show
+    . fmap prettyText
+
 
   reachOffset o pst@PosState {..} =
     let stream = (unExpStream pstateInput) in
     case drop (o - pstateOffset) stream of
       [] ->
         ( pstateSourcePos
-        , show stream
+        , prettyText stream
         , pst { pstateInput = ExpStream [] }
         )
       (x:xs) ->
         ( pstateSourcePos
-        , show (x:xs)
+        , prettyText (x:xs)
         , pst { pstateInput = ExpStream (x:xs) }
         )
 
@@ -87,7 +89,7 @@ pInSexp p = do
     (CleanSexp exps) -> case process "inside s-exp" p exps of
                           Left errors -> fail $ concat errors
                           Right exp -> return exp
-    _                -> fail $ "Expected a CleanSexp, got " ++ (show next)
+    _                -> fail $ "Expected a CleanSexp, got " ++ (prettyText next)
 
 -- | parses the symbol '::', followed by a Type, and a sequence of zero or more ( '->' followed by a Type)
 pTypeSeq :: Parser [CleanExp]

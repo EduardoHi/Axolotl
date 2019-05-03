@@ -7,7 +7,6 @@ module Axo.Check
   ) where
 
 import qualified Data.Map as Map
-import Data.Maybe(fromJust)
 
 import Control.Monad.Except
 import Control.Monad.Reader

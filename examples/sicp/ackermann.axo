@@ -10,3 +10,5 @@
     (0 y -> {2 * y})
     (_ 1 -> 2)
     (x y -> (ackermann {x - 1} (ackermann x {y - 1}))))
+
+-- end of acker
