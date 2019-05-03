@@ -54,8 +54,8 @@ eval term = do
     (Lit l) -> evalLit l
     (Var v) -> evalVar v
     (Type t) -> evalVar t
-    (Def fname args body _) -> -- (define add2 x -> {x + 2})
-      evalDefine fname args body
+    (Def fname matches t) -> -- (define add2 x -> {x + 2})
+      return $ VAST $ Def fname matches t -- evalDefine fname m body
     (If cond expT expF) ->     -- (if condition if-true if-false)
       evalIf cond expT expF
     (Lam arg body) ->          -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction

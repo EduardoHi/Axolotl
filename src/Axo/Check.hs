@@ -97,23 +97,24 @@ check expr = case expr of
     rhs <- inEnvAll nts (check body) -- inEnv (name undefined)
     return $ TArr $ (map snd nts)++[rhs]
 
-  Def fname args body ty -> do
+  Def fname matches ty -> do
     -- if type signature is specified,
     -- we already know the type of the function
     -- then only check that body is correct too.
     -- else type is any.
+    return TAny
 
-    case ty of
-      Nothing -> return TAny
-      Just ty@(TArr tys) -> do
-        let argtys = zipWith (,) args (init tys)
-        inEnvAll ((fname, ty):argtys) (checkExprs body)
-        -- TODO we also need to extend every argument with it's type
-        return ty
-      Just ty -> do
-        inEnv (fname, ty) (checkExprs body)
-        -- TODO we also need to extend every argument with it's type
-        return ty
+    -- case ty of
+    --   Nothing -> return TAny
+    --   Just ty@(TArr tys) -> do
+    --     let argtys = zipWith (,) args (init tys)
+    --     inEnvAll ((fname, ty):argtys) (checkExprs body)
+    --     -- TODO we also need to extend every argument with it's type
+    --     return ty
+    --   Just ty -> do
+    --     inEnv (fname, ty) (checkExprs body)
+    --     -- TODO we also need to extend every argument with it's type
+    --     return ty
 
   If cond eT eF -> do
     -- cond should be a boolean
