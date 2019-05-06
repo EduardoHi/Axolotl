@@ -77,7 +77,7 @@ evalLit x = return $ case x of
                        (LitFloat f) -> VFloat f
                        -- ...
 
-evalData :: [Constrs] -> Evaluator ()
+evalData :: [DConstr] -> Evaluator ()
 evalData constructors = do
   env <- get
   -- if the constructor is a function type, add it as a VConstr

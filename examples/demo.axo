@@ -1,12 +1,42 @@
 
 --- demo function from "The implementation of Functional Programming Languages" page 82, translated to axo
 
+-- this is a function compilation with the pattern matching compiler involved, and that also uses all it's rules of the pattern matching algorithm.
+
 
 (define demo
     (f [] ys             -> (a f ys))
-    (f {x : xs} []       -> (b f x xs))
+    (f {x : xs} []       -> (b f xs))
     (f {x : xs} {y : ys} -> (c f x xs y ys)))
 
+-- is parsed as:
 
--- (define demo
---     (f xs -> (a f xs)))
+-- Def "demo" [Equation {_equationPat = [PVar "f",PVar "[]",PVar "ys"], _equationBody = App (Var "a") [Var "f",Var "ys"]},Equation {_equationPat = [PVar "f",PCon ":" [PVar "x",PVar "xs"],PVar "[]"], _equationBody = App (Var "b") [Var "f",Var "xs"]},Equation {_equationPat = [PVar "f",PCon ":" [PVar "x",PVar "xs"],PCon ":" [PVar "y",PVar "ys"]], _equationBody = App (Var "c") [Var "f",Var "x",Var "xs",Var "y",Var "ys"]}] Nothing
+
+
+-- Def "demo" [ Equation
+-- 		{ _equationPat = [ PVar "f"
+--		  	       	 , PVar "[]"
+--				 , PVar "ys"]
+-- 		, _equationBody = App (Var "a") [Var "f",Var "ys"]
+-- 		}
+-- 	   , Equation
+-- 		{ _equationPat = [ PVar "f"
+--		  	       	 , PCon ":" [PVar "x",PVar "xs"]
+-- 				 , PVar "[]"]
+-- 		, _equationBody = App (Var "b") [Var "f",Var "xs"]
+-- 		}
+-- 	   , Equation
+-- 	        { _equationPat = [ PVar "f"
+--		  	       	 , PCon ":" [PVar "x",PVar "xs"]
+--				 , PCon ":" [PVar "y",PVar "ys"]
+--				 ]
+-- 		, _equationBody = App (Var "c") [Var "f",Var "x",Var "xs",Var "y",Var "ys"]
+-- 		}
+-- 	   ] Nothing
+
+
+-- it needs an environment for the match function to run:
+-- Map.fromList [(":", TArr [TInt, TADT "List", TADT "List"]), ("[]", (TADT "List"))]
+
+(demo id [] [])

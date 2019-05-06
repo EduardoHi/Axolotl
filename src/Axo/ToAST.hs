@@ -175,7 +175,7 @@ pSinglePattBody = do
   body <- pExpr
   return $ Match args body
 
-pConstrDecl :: Name -> Parser Constrs
+pConstrDecl :: Name -> Parser DConstr
 pConstrDecl tname = do
   pInSexp $ do
     (CleanType cname) <- pAnyType
