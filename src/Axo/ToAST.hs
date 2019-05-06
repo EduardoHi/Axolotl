@@ -119,6 +119,7 @@ toType ce = case ce of
               (CleanType "Int") -> TInt
               (CleanType "Float") -> TFloat
               (CleanType s) -> TADT s
+              (CleanVar v) -> TAny -- wish we could have generics instead
               x -> error $ "AST.hs: Expected a CleanType, got: " ++ (show x)
 
 -- | parses the symbol if, followed by 3 expressions, the condition, the expr if true, and the expr if false
@@ -179,7 +180,7 @@ pConstrDecl :: Name -> Parser DConstr
 pConstrDecl tname = do
   pInSexp $ do
     (CleanType cname) <- pAnyType
-    args <- typeSeqToType <$> (many pAnyType)
+    args <- typeSeqToType <$> (many (try pAnyType <|> pAnyVar))
     return $ (cname, args `appendTypes` (TADT tname))
 
 pData :: Parser Expr
