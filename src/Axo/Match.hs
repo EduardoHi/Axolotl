@@ -41,8 +41,9 @@ runMatch env = let env' = (mapEnv . filterEnv) env
                in flip runReader env'
   where filterEnv = Map.filter (\case
                                    TArr xs -> isTADT (last xs)
-                                   TADT _  -> True)
-        mapEnv = Map.map (\case
+                                   TADT _  -> True
+                                   _ -> False)
+        mapEnv = Map.map (\case -- not worring because other patterns are filtered beforehand
                              TArr xs -> ((_adtName $ last xs), (length xs) - 1)
                              TADT n  -> (n, 0))
 
@@ -59,11 +60,13 @@ matchExpr :: Expr -> Match Expr
 matchExpr e = case e of
   -- things it does not check:
   -- that the equations are well formed (i.e. have the same number of arguments)
-  (Def name eqs _) -> do
-    let k = fromIntegral $ length $ _equationPat (head eqs)
-    let newvars = makeNVar 1 k
-    body <- match k newvars eqs (Var "ERROR")
-    return $ Def name [Equation (map PVar newvars) body] Nothing
+                (Def name eqs _) -> do
+                  let k = fromIntegral $ length $ _equationPat (head eqs)
+                  let newvars = makeNVar 1 k
+                  body <- match k newvars eqs (Var "ERROR")
+                  return $ Def name [Equation (map PVar newvars) body] Nothing
+                -- any other expression return it _as it is_
+                x -> return x
 
 -- | e.g. "Nil" -> "List"
 constrToType :: Name -> Match Name

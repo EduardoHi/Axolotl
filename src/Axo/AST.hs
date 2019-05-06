@@ -82,10 +82,9 @@ data Pattern
 --               }
 --           ]
 
-
-data Match = Match
-  { _matchPat :: [Pattern]
-  , _matchBody :: Expr
+data Equation = Equation
+  { _equationPat :: [Pattern]
+  , _equationBody :: Expr
   } deriving (Eq, Show, Data)
 
 data Lit
@@ -110,17 +109,10 @@ data Expr
                                         -- "special forms" -- see Note [Special Forms]
   | Lam [Name] Expr                     -- (\x -> {x + 2})
   | If Expr Expr Expr                   -- (if {x > 0} "x is positive" "x is negative")
-<<<<<<< HEAD
-  | Def Name [Match] (Maybe Type)       -- (define f x -> {x + x})
-  | Prim Name [Expr]                    -- (*. 1.2 3.1)
-  | Data Name [Constrs]                 -- (data Bool (True) (False))
-  | Case Expr [Match]
-=======
   | Def Name [Equation] (Maybe Type)    -- (define f x -> {x + x})
   | Prim Name [Expr]                    -- (*. 1.2 3.1)
   | Data Name [DConstr]                 -- (data Bool (True) (False))
   | Case Expr [Clause]
->>>>>>> 490669a... Pattern Matching Algorithm Implementation
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
@@ -135,8 +127,6 @@ isVar Var{}   = True
 isVar _       = False
 
 _varName (Var n) = n
-<<<<<<< HEAD
-=======
 
 
 -- | Substitutes in Expr `e`, all ocurrences of Name `o` to `n`
@@ -149,5 +139,3 @@ subst e o n = case e of
   x              -> x
   where subst' x = subst x o n
         replace = map (\x -> if x == o then n else x)
-
->>>>>>> 490669a... Pattern Matching Algorithm Implementation
