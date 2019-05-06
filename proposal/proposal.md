@@ -3,20 +3,53 @@
 
 > Hubo un tiempo en que yo pensaba mucho en los axolotl. Iba a verlos al acuario del Jardín des Plantes y me quedaba horas mirándolos, observando su inmovilidad, sus oscuros movimientos. Ahora soy un axolotl. _Julio Cortázar_
 
+## Project Description
 
-## Vision / Purpose
+### Vision / Purpose
 
 Axo is how we imagine Haskell as a Lisp. While Haskell has a "clean syntax" it is full syntactic sugar that makes it harder to reason/learn about, also, this makes source-code transformations not accesible to most programmers. Haskell is already good at meta-programming, with type classes, template haskell, etc. But it lacks some of the power that macros can offer. Therefore, we propose a new programming language with Haskell semantics, but with Lisp syntax, plus some syntax features that we think are convenient for programming haskell style.
 
-## Main objective, category
-
+### Main objective, Category
 
 A haskell-like Lisp. Strongly typed purely functional programming language.
 
-## Language requirements
+### Language requirements and Use Cases
+
+### Test Case Description
+
+### Development Process
+
+#### Process Description
+
+#### Advancement Blogs
+
+#### Lessons Learned by Eduardo (signed)
+
+#### Lessons Learned by Lazaro (signed)
 
 
-### Basic Elements
+## Language Description
+
+### General Language Characteristics
+
+### Possible Errors
+
+#### Compilation Errors
+
+#### Execution Errors
+
+
+## Compiler Description
+
+### Language and OS used for development
+
+Axo is written in Haskell, and developed on MacOS and Debian linux.
+
+For parsing we used Megaparsec, which is a monadic parser combinator library.
+
+### Lexical Analysis
+
+#### Construction Patterns
 
 All the language is case sensitive
 
@@ -30,31 +63,6 @@ Tokens:
 | char literal   | only one char or eschaped char between single quotes               | `'a'`,`'\n'`  |
 | varId          | any sequence of non reserved chars, starting with a lowercase char | `a`, `solve`, `x0`,`>>=` |
 | typeId         | any sequence of non reserved chars, starting with a uppercase char | `List`, `Maybe`, `Int` |
-
-### Syntax Diagrams
-
-Grammar:
-
-\includegraphics{diagrams/Program.png}
-![Program](diagrams/Program.png)
-
-![SExp ](diagrams/SExp.png)
-
-![ExpSeq ](diagrams/ExpSeq.png)
-
-![Exp ](diagrams/Exp.png)
-
-![Atom ](diagrams/Atom.png)
-
-![Literal ](diagrams/Literal.png)
-
-![IExp ](diagrams/IExp.png)
-
-![InfixExp ](diagrams/InfixExp.png)
-
-![CommentSingleLine ](diagrams/CommentSingleLine.png)
-
-![CommentMultiLine ](diagrams/CommentMultiLine.png)
 
 Lexems:
 
@@ -90,7 +98,36 @@ Lexems:
 
 ![NotDoubleQuote ](diagrams/NotDoubleQuote.png)
 
-### Semantic Characteristics
+#### Tokens and their respective code
+
+### Syntactical Analysis
+
+Grammar:
+
+![Program](diagrams/Program.png)
+
+![SExp ](diagrams/SExp.png)
+
+![ExpSeq ](diagrams/ExpSeq.png)
+
+![Exp ](diagrams/Exp.png)
+
+![Atom ](diagrams/Atom.png)
+
+![Literal ](diagrams/Literal.png)
+
+![IExp ](diagrams/IExp.png)
+
+![InfixExp ](diagrams/InfixExp.png)
+
+![CommentSingleLine ](diagrams/CommentSingleLine.png)
+
+![CommentMultiLine ](diagrams/CommentMultiLine.png)
+
+
+## Intermediate Code Generator & Semantical Analysis
+
+#### Semantic Characteristics 
 
 Our language is divided into two fields: values and types. Values are data whereas types are sets of values.
 
@@ -104,6 +141,27 @@ Values and expressions
 The field of values include primitives and user defined. Primitives like a number, a character or a function, and user defined like a tree. These are all first class. Expressions are a combination of values by the means of function application. For example `(+ 2 3)` or the function `( x -> (* x x))`. There is a very special value: undefined. When undefined is evaluated, the program crashes. Undefined allows us to define [partial functions](<https://en.wikipedia.org/wiki/Partial_function>). Similarly there is a very special function: error. This function receives a String s and returns undefined, which will crash the program with the error message s.
 
 It is important to note that Axo does not differentiate between functions and operators, because the simplicity of the syntax allows an identifier to be composed of only symbols.
+
+# FIND EQUIVALENTS FOR ALL OF THE FOLLOWING
+
+Part of c.4 (Intermediate code generation and semantic analysis)
+c.5 (Detailed memory administration process)
+d (Virtual Machine description)
+
+## Proof of a Working Language
+
+### Code
+### Results
+
+## Documentation Comments by Module
+
+### List important parts of the code (maybe files?) and explain what they do.
+
+# User Manual
+
+## Quick Reference Manual
+
+# Find where the following parts fit
 
 1.  Looping
 
@@ -146,7 +204,7 @@ define (foldl f a xs)
     (foldl f (f a (head xs)) (tail xs))
 ```
 
-### Special Functions and Forms
+#### Special Functions and Forms
 
 1.  Input/Output
 
@@ -218,7 +276,7 @@ define (foldl f a xs)
     | `class`    |
     | `instance` |
 
-### Data Types
+#### Data Types
 
 1.  Type System
 
@@ -258,12 +316,7 @@ define (foldl f a xs)
     ```
 
 
-## Language and OS used for development
-
-
-Axo is written in Haskell, and developed on MacOS and Debian linux.
-
-## More Axo code  
+### More Axo code  
 
 Append function in Axo:
 
@@ -299,14 +352,14 @@ https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours/Towards_a_Stan
 http://dev.stephendiehl.com/fun/006_hindley_milner.html#types
 
 
-## Features we would like to have
+### Features we would like to have
 
 
-### Type Classes
+#### Type Classes
 
 A possible extension to the type system are type classes, which are a constraint over a polymorphic type, that forces a type to be an instance of that class. This means that it implements a specific associated function. We can think of classes as interfaces in other languages. Examples include: Num, Show, Read, Ord and Eq.
 
-### Meta-programming
+#### Meta-programming
 
 eval time compilation time **development time**
 
