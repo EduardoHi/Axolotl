@@ -7,5 +7,3 @@
     (f [] ys		 -> [])
     (f {x : xs} []	 -> [])
     (f {x : xs} {y : ys} -> {(f x y) : (mappairs f xs ys)}))
-
--- eof

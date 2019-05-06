@@ -114,10 +114,11 @@ comment = (Comment <$> between (string "--") eol inside <?> "Comment")
 
 -- The toplevel definition of a program
 program :: Parser Program
-program = Program <$> (many $ L.nonIndented scn topLevelExps) <* eof
-  where topLevelExps = (EComment <$> comment) <|>
-                       (EInfixexp <$> infixExp) <|>
-                       (ESexp <$> sExp)
+program = Program <$> (scn *> (many topLevelExp) <* eof)
+  where topLevelExp = L.lexeme scn $
+                      (EComment <$> comment) <|>
+                      (EInfixexp <$> infixExp) <|>
+                      (ESexp <$> sExp)
 
 sExp :: Parser Sexp
 sExp = Sexp <$> between (char '(') (char ')') expSeqLn <?> "Sexpression"
@@ -133,7 +134,6 @@ expr = (EComment <$> try comment)
        <|> (ESexp <$> sExp)
        <|> (EInfixexp <$> infixExp)
        <|> (EAtom <$> atom)
-       -- TODO: Nested indentExpressions <|> (EIexp <$> indentExp)
 
 exprLn :: Parser Exp
 exprLn = L.lexeme scn expr
