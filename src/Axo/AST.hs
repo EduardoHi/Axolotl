@@ -112,6 +112,7 @@ data Expr
   | Def Name [Equation] (Maybe Type)    -- (define f x -> {x + x})
   | Prim Name [Expr]                    -- (*. 1.2 3.1)
   | Data Name [DConstr]                 -- (data Bool (True) (False))
+  | Defun Name [Name] Expr              -- same as Def, but without pattern matching
   | Case Expr [Clause]
   deriving (Show, Eq, Data)
 

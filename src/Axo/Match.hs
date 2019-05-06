@@ -64,7 +64,7 @@ matchExpr e = case e of
                   let k = fromIntegral $ length $ _equationPat (head eqs)
                   let newvars = makeNVar 1 k
                   body <- match k newvars eqs (Var "ERROR")
-                  return $ Def name [Equation (map PVar newvars) body] Nothing
+                  return $ Defun name newvars body
                 -- any other expression return it _as it is_
                 x -> return x
 

@@ -45,4 +45,20 @@
 
 (demo id [] [])
 
--- comment
+-- output after pattern matching
+--
+-- Case (Var "_u2")
+--      [ Clause ":"
+--               ["_u4","_u5"]
+--               (Case (Var "_u3")
+--                     [ Clause ":"
+--                              ["_u6","_u7"]
+--                              (App (Var "c") [Var "_u1",Var "_u4",Var "_u5",Var "_u6",Var "_u7"])
+--                     , Clause "[]"
+--                              []
+--                              (App (Var "b") [Var "_u1",Var "_u5"])
+--                     ])
+--      , Clause "[]"
+--               []
+--               (App (Var "a") [Var "_u1",Var "_u3"])
+--      ]
