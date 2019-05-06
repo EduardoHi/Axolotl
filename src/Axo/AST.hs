@@ -102,7 +102,6 @@ data Clause
   = Clause Name [Name] Expr
   deriving (Show, Eq, Data)
 
-
 data Expr
   = Var Name                            -- abc       -- a symbol
   | Type Name                           -- List      -- a capitalized symbol

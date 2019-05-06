@@ -87,7 +87,6 @@ evalExp e = do
   let (val,env') = runEval env e
   modify $ \is -> is {_env = env'}
   liftIO $ do
-    putStrLn $ "parsed: " ++ (show e)
     putStrLn $ "evaluated: " ++ (show val)
 
 options :: [(String, [String] -> Repl ())]

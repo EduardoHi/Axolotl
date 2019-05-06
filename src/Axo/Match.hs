@@ -1,5 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
-module Axo.Match where
+module Axo.Match
+  ( matchProgram
+  , matchTop
+  ) where
 
 
 import Control.Monad.Reader
@@ -46,6 +49,9 @@ runMatch env = let env' = (mapEnv . filterEnv) env
 matchProgram :: Env -> Program -> Program
 matchProgram env (Program es) = Program $ runMatch env (matchExprs es)
 
+matchTop :: Env -> Expr -> Expr
+matchTop env e = runMatch env (matchExpr e)
+
 matchExprs :: [Expr] -> Match [Expr]
 matchExprs es = mapM matchExpr es
 
@@ -77,7 +83,6 @@ arity :: Name -> Match Integer
 arity name = do
   dataenv <- ask
   return $ fromIntegral $ snd $ fromJust $ Map.lookup name dataenv
-arity _ = error "arity is only for constructors"
 
 -- | returns all the constructors for the type corresponding to the constructor
 -- e.g. (constructors "Nil") -> ["Cons", "Nil"]
