@@ -23,7 +23,7 @@ compile args = do
         { _flags = (flags args)
         , _filename = (takeWhile (/='.') filename)
         }
-  (res,finalState) <- runCompilerM (loadModule sourceCode) initialState
+  (res, _) <- runCompilerM (loadModule sourceCode) initialState -- second element is finalState
   case res of
     Left err -> putStrLn err
     _ -> print res

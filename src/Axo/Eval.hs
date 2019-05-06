@@ -133,14 +133,12 @@ evalApp e1 es = do
   objtoapply <- eval e1
   case objtoapply of
     (VClosure params c' env') -> do
---      v <- eval e2
       bindings <- (zipWith (,) params) <$> (mapM eval es)
       put $ extendAll env' bindings
       res <- eval c'
       put $ env
       return res
     (VConstr name) -> do
---      v <- eval e2
       args <- mapM eval es
       return $ VADT name args
     _ -> evalError "object not applicable"

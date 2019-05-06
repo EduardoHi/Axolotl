@@ -39,7 +39,7 @@ defaultMatcher = [
   ]
 
 completer :: (Monad m, MonadState InterpreterState m) => WordCompleter m
-completer n = do
+completer _ = do
   ns <- gets _env
   return $ boundVars ns
 
