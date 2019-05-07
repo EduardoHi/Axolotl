@@ -1,0 +1,19 @@
+
+
+(data Bool (True) (False))
+
+(data List (Cons a List) (Nil))
+
+(data Either (Left String) (Right Int))
+
+(data Tuple (Tuple a b))
+
+(data Maybe (Just a) (Nothing))
+
+
+
+(define id x -> x)
+
+(define map
+    (f [] -> [])
+    (f {x Cons xs} -> (Cons (f x) (map xs))))

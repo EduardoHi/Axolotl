@@ -1,0 +1,12 @@
+
+
+(define process xs -> map square xs)
+
+(define repeat
+        (0 _ -> error "repeat 0 times is not legal")
+        (1 f -> (f))
+        (n f -> {(f) : (repeat {n - 1} f)}))
+
+(define readList -> repeat 4 getInt)
+
+(print (process (readList)))
