@@ -59,29 +59,6 @@ data Pattern
   | PLit Lit
   deriving (Eq, Show, Data)
 
--- Match is a single "function line"
--- e.g.
-
--- (define map
---     (f []       -> [])
---     (f {x : xs} -> {(f x) : (map f xs)}))
-
--- is transformed to:
--- Def "map" [
---             Match
---               { _matchPat = [PVar "f", PCon "Nil" [] ]
---               , _matchBody = Var "Nil"
---               }
---           , Match
---               { _matchPat = [PVar "f", PCon "Cons" [PVar "x", PVar "xs"] ]
---               , _matchBody =
---                   App (Var ":")
---                   [ App (Var "f") [Var "x"],
---                     App (Var "map") [Var "f", Var "xs"]
---                   ]
---               }
---           ]
-
 data Equation = Equation
   { _equationPat :: [Pattern]
   , _equationBody :: Expr
@@ -136,6 +113,7 @@ subst e o n = case e of
   Var v | v == o -> Var n
   App e es       -> App (subst' e) (map subst' es)
   Lam l e        -> Lam (replace l) (subst' e)
+  Prim p e       -> Prim p (map subst' e)
   If c t f       -> If (subst' c) (subst' t) (subst' f)
   x              -> x
   where subst' x = subst x o n

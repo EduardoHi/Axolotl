@@ -15,6 +15,8 @@ instance Desugar Program CleanProgram where
 instance Desugar Atom CleanExp where
   desugar (Id i) =
     case i of
+      (VarId ":") -> CleanType "Cons"
+      (VarId "[]") -> CleanType "Nil"
       (VarId  s) -> CleanVar  s
       (TypeId s) -> CleanType s
   desugar (Literal li) = CleanLit li

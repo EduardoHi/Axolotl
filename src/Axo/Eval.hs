@@ -104,7 +104,7 @@ evalCase e clauses = do
     (VADT ne values) ->
       case Data.List.find (\(Clause n _ _) -> n == ne) clauses of
         Nothing -> error "incomplete patterns in Axo"
-        Just (Clause n args body) -> do
+        Just (Clause _ args body) -> do
           env <- get
           let bindings = zipWith (,) args values
           put $ extendAll env bindings
@@ -133,14 +133,12 @@ evalApp e1 es = do
   objtoapply <- eval e1
   case objtoapply of
     (VClosure params c' env') -> do
---      v <- eval e2
       bindings <- (zipWith (,) params) <$> (mapM eval es)
       put $ extendAll env' bindings
       res <- eval c'
       put $ env
       return res
     (VConstr name) -> do
---      v <- eval e2
       args <- mapM eval es
       return $ VADT name args
     _ -> evalError "object not applicable"
@@ -167,7 +165,7 @@ applyVFloat _ _ _ = evalError $ "function has wrong type of arguments"
 
 applyVInt :: (Int -> Int -> Int) -> BinOp
 applyVInt f (VInt a) (VInt b) = VInt (f a b)
-appyVInt _ _ _ = evalError $ "function has wrong type of arguments"
+applyVInt _ a b = evalError $ "function has wrong type of arguments: "++(show [a,b])
 
 primIntOps :: [(String, BinOp)]
 primIntOps = [ ("+", applyVInt (+) )

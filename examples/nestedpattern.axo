@@ -1,0 +1,3 @@
+
+(define conscons
+        ((Cons (Cons x)) ->  x))
