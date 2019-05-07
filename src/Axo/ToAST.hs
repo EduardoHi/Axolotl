@@ -155,7 +155,7 @@ pPatterns = pWhile pPattern (\x -> x /= (CleanVar "->"))
 -- | parses a single pattern (variable, literal, or a constructor)
 pPattern :: Parser Pattern
 pPattern = do
-  exprToPatt <$> ((try pAtom) <|> pApp)
+  exprToPatt <$> ((try pAtom) <|> (pInSexp pApp))
   where exprToPatt a = case a of
                          Var v          -> PVar v
                          Type t         -> PCon t []
@@ -164,18 +164,18 @@ pPattern = do
                          App (Type n) l -> PCon n (map exprToPatt l)
 
 -- | parses a list of patterns along with an arrow and the body, used in multiple-definitions for functions
-pPattBody :: Parser [Match]
+pPattBody :: Parser [Equation]
 pPattBody = some $ pInSexp pSinglePattBody
 
 -- | parses a simpler pattern with body, that is not inside parenthesis. used in a simpler version of define
-pSinglePattBody :: Parser Match
+pSinglePattBody :: Parser Equation
 pSinglePattBody = do
   args <- pPatterns
   pArr
   body <- pExpr
-  return $ Match args body
+  return $ Equation args body
 
-pConstrDecl :: Name -> Parser Constrs
+pConstrDecl :: Name -> Parser DConstr
 pConstrDecl tname = do
   pInSexp $ do
     (CleanType cname) <- pAnyType

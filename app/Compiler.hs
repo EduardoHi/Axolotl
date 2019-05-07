@@ -22,6 +22,7 @@ import Axo.Check
        , emptyTypeEnv
        , typeErrorPretty
        )
+import Axo.Match (matchProgram, matchTop)
 
 import Flags
 
@@ -34,11 +35,12 @@ data Phase
 data CompilerState = CompilerState
   {  _filename :: String
   ,  _flags    :: Flags
-  ,  _source   :: String -- todo: change to Text god damn
-  ,  _st       :: Maybe Program -- syntax tree
-  , _desugared :: Maybe CleanProgram
-  , _ast       :: Maybe AST.Program -- abstract syntax tree
-  , _tyenv     :: TypeEnv
+  ,  _source   :: String             -- todo: change to Text
+  ,  _st       :: Maybe Program      -- syntax tree
+  , _desugared :: Maybe CleanProgram -- desugared syntax tree
+  , _ast       :: Maybe AST.Program  -- abstract syntax tree
+  , _tyenv     :: TypeEnv            -- typing environment
+  , _pmast     :: Maybe AST.Program  -- pattern matched abstract syntax tree
   -- ... extra info: a var table... etc.
   } deriving Show
 
@@ -50,6 +52,7 @@ emptyState = CompilerState
   , _desugared = Nothing
   , _ast       = Nothing
   , _tyenv     = emptyTypeEnv
+  , _pmast     = Nothing
   }
 
 type CompilerMonad =
@@ -90,19 +93,17 @@ loadExpr s = do
   case exps of
     [] -> throwError "Empty Program"
     _  -> do
-      e <- tExp (head exps)
+      e <- tDesugarE (head exps)
       et <- tCheckE e
-      return (e,et)
-
-loadFile :: String -> CompilerM AST.Program
-loadFile filename = do
-  sourceCode <- liftIO $ readFile $ filename
-  loadModule sourceCode
+      e' <- tMatchE e
+      return (e',et)
 
 loadModule :: String -> CompilerM AST.Program
 loadModule s = do
   modify (\x -> x {_source = s})
   a <- tParseP >>= tDesugar >>= tAST
+  tCheckP a
+  a' <- tMatchP a
   --- later phases here might be Intermediate Representation, CodeGen, etc.
   phase <- choosePhase
   case phase of
@@ -111,11 +112,16 @@ loadModule s = do
                 (PDesugar x) -> output x
                 (PSt x) -> output x
     Nothing -> throwError "Compiler: nothing to output"
-  return a
+  return a'
   where output x = do
           ifFlag OGraph $ graphOut x
           ifFlag OHaskellData $ haskellDataOut x
           ifFlag OAxolotlSrc $ axolotlSrcOut x
+
+loadFile :: String -> CompilerM AST.Program
+loadFile filename = do
+  sourceCode <- liftIO $ readFile $ filename
+  loadModule sourceCode
 
 --- Transformations
 
@@ -147,8 +153,8 @@ tDesugar p = do
   return desugared
 
 -- | Transforms a clean expression to an AST
-tExp :: CleanExp -> CompilerM AST.Expr
-tExp e = do
+tDesugarE :: CleanExp -> CompilerM AST.Expr
+tDesugarE e = do
   case toAST e of
     Left e    -> throwError $ intercalate "\n\n" e
     Right ast -> do
@@ -183,6 +189,22 @@ tCheckE e = do
     Right (t, tyenv') -> do
       modify (\x -> x {_tyenv = tyenv'})
       return t
+
+-- | Transform Function Definitions with Pattern Matching to Case Exprs
+tMatchP :: AST.Program -> CompilerM AST.Program
+tMatchP p = do
+  tyenv <- gets _tyenv
+  let ast = matchProgram tyenv p
+  modify (\x -> x {_pmast = Just ast})
+  return ast
+
+-- | Transform the expresssion from a Function Definition with Pattern Matching to a Case Expr
+tMatchE :: AST.Expr -> CompilerM AST.Expr
+tMatchE e = do
+  tyenv <- gets _tyenv
+  let e' = matchTop tyenv e
+  modify (\x -> x {_pmast = Just (AST.Program [e'])})
+  return e'
 
 --- End Transformations
 

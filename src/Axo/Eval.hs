@@ -3,6 +3,7 @@ module Axo.Eval where
 
 import Axo.AST
 import qualified Data.Map as Map
+import Data.List
 import Control.Monad.State.Strict
 
 evalError msg = error msg
@@ -54,8 +55,8 @@ eval term = do
     (Lit l) -> evalLit l
     (Var v) -> evalVar v
     (Type t) -> evalVar t
-    (Def fname matches t) -> -- (define add2 x -> {x + 2})
-      return $ VAST $ Def fname matches t -- evalDefine fname m body
+    (Defun fname args body) -> -- (define add2 x -> {x + 2})
+      evalDefine fname args body
     (If cond expT expF) ->     -- (if condition if-true if-false)
       evalIf cond expT expF
     (Lam arg body) ->          -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
@@ -68,7 +69,9 @@ eval term = do
     d@(Data _ constrs) -> do
       evalData constrs
       return $ VAST d
-    x -> evalError $ "failed to match pattern: " ++ (show x)
+    (Case e cls) ->
+      evalCase e cls
+--    x -> evalError $ "failed to match pattern: " ++ (show x)
 
 
 evalLit :: Lit -> Evaluator Value
@@ -77,7 +80,7 @@ evalLit x = return $ case x of
                        (LitFloat f) -> VFloat f
                        -- ...
 
-evalData :: [Constrs] -> Evaluator ()
+evalData :: [DConstr] -> Evaluator ()
 evalData constructors = do
   env <- get
   -- if the constructor is a function type, add it as a VConstr
@@ -87,12 +90,28 @@ evalData constructors = do
                                  else (name, VADT name [])) constructors
   put $ extendAll env names
 
-evalDefine :: String -> [String] -> [Expr] -> Evaluator Value
+evalDefine :: String -> [String] -> Expr -> Evaluator Value
 evalDefine fname args body = do
   env <- get
-  let newc = VClosure args (head body) env
+  let newc = VClosure args body env
   put $ extend env fname newc
   return newc
+
+evalCase :: Expr -> [Clause] -> Evaluator Value
+evalCase e clauses = do
+  caseVal <- eval e
+  case caseVal of
+    (VADT ne values) ->
+      case Data.List.find (\(Clause n _ _) -> n == ne) clauses of
+        Nothing -> error "incomplete patterns in Axo"
+        Just (Clause n args body) -> do
+          env <- get
+          let bindings = zipWith (,) args values
+          put $ extendAll env bindings
+          res <- eval body
+          put env
+          return res
+    _ -> error $ "expected an ADT, received: " ++ (show caseVal)
 
 evalVar :: String -> Evaluator Value
 evalVar v = do

@@ -38,6 +38,11 @@ data Type
 isTArr TArr{} = True
 isTArr _      = False
 
+isTADT TADT{} = True
+isTADT _      = False
+
+_adtName (TADT n) = n
+
 appendTypes :: Type -> Type -> Type
 appendTypes (TArr []) t = t
 appendTypes t (TArr []) = t
@@ -76,11 +81,10 @@ data Pattern
 --                   ]
 --               }
 --           ]
---
 
-data Match = Match
-  { _matchPat :: [Pattern]
-  , _matchBody :: Expr
+data Equation = Equation
+  { _equationPat :: [Pattern]
+  , _equationBody :: Expr
   } deriving (Eq, Show, Data)
 
 data Lit
@@ -90,7 +94,12 @@ data Lit
   | LitChar Char     -- 'c'
   deriving (Show, Eq, Data)
 
-type Constrs = (Name,Type)
+type DConstr = (Name,Type)
+
+-- Case Clause. has a Constructor, a variable names list, and a body
+data Clause
+  = Clause Name [Name] Expr
+  deriving (Show, Eq, Data)
 
 data Expr
   = Var Name                            -- abc       -- a symbol
@@ -100,10 +109,11 @@ data Expr
                                         -- "special forms" -- see Note [Special Forms]
   | Lam [Name] Expr                     -- (\x -> {x + 2})
   | If Expr Expr Expr                   -- (if {x > 0} "x is positive" "x is negative")
-  | Def Name [Match] (Maybe Type)       -- (define f x -> {x + x})
+  | Def Name [Equation] (Maybe Type)    -- (define f x -> {x + x})
   | Prim Name [Expr]                    -- (*. 1.2 3.1)
-  | Data Name [Constrs]                 -- (data Bool (True) (False))
-  | Case Expr [Match]
+  | Data Name [DConstr]                 -- (data Bool (True) (False))
+  | Defun Name [Name] Expr              -- same as Def, but without pattern matching
+  | Case Expr [Clause]
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
@@ -118,3 +128,15 @@ isVar Var{}   = True
 isVar _       = False
 
 _varName (Var n) = n
+
+
+-- | Substitutes in Expr `e`, all ocurrences of Name `o` to `n`
+subst :: Expr -> Name -> Name -> Expr
+subst e o n = case e of
+  Var v | v == o -> Var n
+  App e es       -> App (subst' e) (map subst' es)
+  Lam l e        -> Lam (replace l) (subst' e)
+  If c t f       -> If (subst' c) (subst' t) (subst' f)
+  x              -> x
+  where subst' x = subst x o n
+        replace = map (\x -> if x == o then n else x)
