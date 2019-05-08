@@ -108,7 +108,7 @@ makeVar :: Integer -> Name
 makeVar k = "_u" ++ (show k)
 
 -- | make n vars starting from k
--- e.g. makeNVar 5 4 => ["_u5","_u6","_u7","_u8"]
+-- e.g. makeNVar 5 4 => ["_u6","_u7","_u8","_u9"]
 makeNVar :: Integer -> Integer -> [Name]
 makeNVar k n = take (fromIntegral n) $ map (\i -> makeVar i) [k..]
 

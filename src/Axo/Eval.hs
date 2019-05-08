@@ -39,7 +39,9 @@ extend :: Env -> String -> Value -> Env
 extend env name value = Map.insert name value env
 
 extendAll :: Env -> [(String,Value)] -> Env
-extendAll env xs = Map.union env (Map.fromList xs)
+extendAll env xs = Map.union (Map.fromList xs) env
+-- order in map union matters, the new env should overwrite the older if there is a
+-- shared key
 
 type Evaluator = State Env
 
