@@ -25,17 +25,17 @@
     (True -> False)
     (_ -> True))
     
--- (define map
---     (f [] -> [])
---     (f {x Cons xs} -> (Cons (f x) (map xs))))
--- 
--- (define foldr
---     (f n [] -> n)
---     (f n {x Cons xs} -> (f (x (foldr f n xs)))))
--- 
+(define map
+        (f [] -> [])
+        (f {x : xs} -> (Cons (f x) (map f xs))))
+
+(define foldr
+    (f n [] -> n)
+    (f n {x : xs} -> (f x (foldr f n xs))))
+
 -- (define foldl
 --     (f n [] -> n)
---     (f n {x Cons xs} -> foldl f (f n x) xs))
+--     (f n {x : xs} -> foldl f (f n x) xs))
 -- 
 
 (define head
@@ -46,14 +46,17 @@
     ([] -> error "Cannot call tail on empty list")
     ({x Cons xs} -> xs))
 
--- 
--- (define elem
---     (a [] -> False)
---     (a {x Cons xs} ->
---      (if {a == x}
---         True
---         (elem a xs))))
--- 
+(define ++
+    ([] ys -> ys)
+    ({x : xs} ys -> {x : {ys ++ xs}}))
+
+(define elem
+    (a [] -> False)
+    (a {x Cons xs} ->
+         (if {a == x}
+             True
+             (elem a xs))))
+ 
 
 (define compose
     (f g -> (\x -> f (g x))))
