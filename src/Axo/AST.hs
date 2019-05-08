@@ -73,9 +73,13 @@ data Lit
 
 type DConstr = (Name,Type)
 
+-- cases can have a constructor or a literal in the right side
+data ClauseHead = CHConstr Name | CHLit Lit | CHAlways
+  deriving (Show, Eq, Data)
+
 -- Case Clause. has a Constructor, a variable names list, and a body
 data Clause
-  = Clause Name [Name] Expr
+  = Clause ClauseHead [Name] Expr
   deriving (Show, Eq, Data)
 
 data Expr
@@ -90,7 +94,7 @@ data Expr
   | Prim Name [Expr]                    -- (*. 1.2 3.1)
   | Data Name [DConstr]                 -- (data Bool (True) (False))
   | Defun Name [Name] Expr              -- same as Def, but without pattern matching
-  | Case Expr [Clause]
+  | Case Expr [Clause]                  -- this one does not has a syntax representation yet
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)
