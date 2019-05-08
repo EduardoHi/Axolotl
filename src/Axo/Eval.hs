@@ -70,7 +70,21 @@ eval term = do
       return $ VAST d
     (Case e cls) ->
       evalCase e cls
+    (Let a b c) ->
+      evalLet a b c
     x -> error $ "failed to match pattern: " ++ (show x)
+
+
+evalLet :: Name -> Expr -> (Maybe Expr) -> Evaluator Value
+evalLet a b c = do
+  b' <- eval b
+  env <- get
+  put $ extend env a b'
+  case c of
+    Nothing -> return b'
+    Just c' -> do
+      c'' <- eval c'
+      return c''
 
 
 evalLit :: Lit -> Evaluator Value

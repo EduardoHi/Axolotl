@@ -96,6 +96,7 @@ data Expr
   | Data Name [DConstr]                 -- (data Bool (True) (False))
   | Defun Name [Name] Expr              -- same as Def, but without pattern matching
   | Case Expr [Clause]                  -- this one does not has a syntax representation yet
+  | Let Name Expr (Maybe Expr)          -- (let (a b) c) OR (let a b)
   deriving (Show, Eq, Data)
 
 newtype Program = Program [Expr] deriving (Show, Eq, Data)

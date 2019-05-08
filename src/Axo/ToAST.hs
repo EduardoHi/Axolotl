@@ -57,6 +57,7 @@ groupEithers xs = case lefts $ xs of
 -- | parses sexps forms, i.e. things with the structure of (<something>).
 pSexp :: Parser Expr
 pSexp = pInSexp $ pDefine <|>
+        pLet <|>
         pIf <|>
         pLambda <|>
         pPrim <|>
@@ -199,3 +200,20 @@ pList = do
   exps <- pWhile pExpr (\x -> x /= (CleanVar "]"))
   pVar "]"
   return $ foldr (\e x -> (App (Type "Cons") [e, x])) (Type "Nil") exps
+
+
+-- |  (let (a b) c)
+-- or (let a b)
+pLet :: Parser Expr
+pLet = do
+  pVar "let"
+  a <- optional (try pAtom)
+  case a of
+    Nothing -> do
+      (Var a,b) <- pInSexp $ ( (,) <$> pAtom <*> pExpr)
+      c <- pExpr
+      return $ Let a b (Just c)
+    Just a' -> do
+      let (Var a'') = a'
+      b <- pExpr
+      return $ Let a'' b Nothing

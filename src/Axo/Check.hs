@@ -69,9 +69,15 @@ defToPairType (Def s _ t) = case t of
 
 parenScope :: [Expr] -> [(Name, Type)]
 parenScope exprs = let defs  = filter isDef  exprs
-                       datas = filter isData exprs in
+                       datas = filter isData exprs
+                       lets = filter isTopLet exprs in
                      (map defToPairType defs) ++ (concatMap getConstrs datas)
+                     ++ (map getLetType lets)
   where getConstrs (Data _ cs) = cs
+        getLetType (Let n _ _) = (n,TAny)
+        isTopLet (Let _ _ Nothing) = True
+        isTopLet _                 = False
+
 
 
 -- the type of an expression list is the last expression
@@ -82,12 +88,18 @@ checkExprs xs = do
   env <- ask
   return (head tys, extendAll parenEnv env)
 
+checkEquation :: Equation -> Check Type
+checkEquation (Equation pts body) = do
+--  let argtys = zipWith (,) (map _varName pts) (init tys)
+--  inEnvAll ((fname, ty):argtys) (checkExprs body)
+  check body
+
 check :: Expr -> Check Type
 check expr = case expr of
   Lit LitInt{}   -> return TInt
   Lit LitFloat{} -> return TFloat
   -- ... LitString ?
-  -- ... LitChar   ?
+  Lit LitChar{} -> return TChar
   -- TODO checks for other literals
 
   Lam names body -> do
@@ -102,24 +114,29 @@ check expr = case expr of
     -- we already know the type of the function
     -- then only check that body is correct too.
     -- else type is any.
-    return TAny
 
-    -- case ty of
-    --   Nothing -> return TAny
-    --   Just ty@(TArr tys) -> do
-    --     let argtys = zipWith (,) args (init tys)
-    --     inEnvAll ((fname, ty):argtys) (checkExprs body)
-    --     -- TODO we also need to extend every argument with it's type
-    --     return ty
-    --   Just ty -> do
-    --     inEnv (fname, ty) (checkExprs body)
-    --     -- TODO we also need to extend every argument with it's type
-    --     return ty
+    case ty of
+      Nothing -> return TAny
+      Just ty@(TArr _) -> do
+        inEnv (fname, ty) $ do
+          bodyTypes <- mapM checkEquation matches
+          return (head bodyTypes)
+      Just ty -> do
+        inEnv (fname, ty) (checkEquation (head matches))
+        -- TODO we also need to extend every argument with it's type
+        return ty
+
+  Let a b c -> do
+    bt <- check b
+    case c of
+      Nothing -> return bt
+      Just c' -> inEnv (a,bt) (check c')
 
   If cond eT eF -> do
     -- cond should be a boolean
-           -- condt <- check cond
-           -- when (condt /= TBool) (throwError $ Mismatch TBool condt)
+    condt <- check cond
+    when (condt /= (TADT "Bool")) (throwError $ Mismatch [TADT "Bool"] [condt])
+
     -- eT's type should be equal to eF's type
     eTt <- check eT
     eFt <- check eF
@@ -176,4 +193,7 @@ primEnv = Map.fromList [
                        , ("*.", TArr [TFloat, TFloat, TFloat])
 
                        , ("=", TArr [TInt, TInt, TInt])
+
+                       , ("getChar", TAny)
+                       , ("putChar", TAny)
                        ]
