@@ -61,6 +61,7 @@ pSexp = pInSexp $ pDefine <|>
         pLambda <|>
         pPrim <|>
         pData <|>
+        pList <|>
         pApp
 
 -- | parses either a sexp form, or an atom
@@ -191,3 +192,9 @@ pData = do
   constrs <- some (pConstrDecl tname)
   return $ Data tname constrs
 
+pList :: Parser Expr
+pList = do
+  pVar "["
+  exps <- pWhile pExpr (\x -> x /= (CleanVar "]"))
+  pVar "]"
+  return $ foldr (\e x -> (App (Type "Cons") [e, x])) (Type "Nil") exps
