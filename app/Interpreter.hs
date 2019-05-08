@@ -46,7 +46,30 @@ completer _ = do
 -- Commands
 help :: [String] -> Repl ()
 help _ = liftIO $ putStrLn $ "Quick Reference:    \n\
-                              \   and unescape to keep writing"
+                              \   To load files use :load  \n\
+                              \   To get the environment use :env \n\
+                              \   To get the type of a use :type a\n\
+                              \   To get the type of a in the current env use :typenv \n\
+                              \   To get you started, here are some examples of Axo code: \n\
+                              \   (data Either (Left String) (Right Int)) \n\
+                              \   (data List (Cons a List) (Nil)) \n\
+                              \   (data Tuple (Tuple a b)) \n\
+                              \   (data Maybe (Just a) (Nothing)) \n\
+                              \   (data Bool (True) (False)) \n\
+                              \   (data Either (Left String) (Right Int)) \n\
+                              \   (data Ordering (LT) (GT) (EQ)) \n\
+                              \   (define id x -> x) \n\
+                              \   (define and \n\
+                              \       (True True -> True) \n\
+                              \       (_ _ -> False)) \n\
+                              \   (define or \n\
+                              \       (_ _ -> True)) \n\
+                              \   (define not \n\
+                              \       (True -> False) \n\
+                              \       (_ -> True)) \n\
+                              \   (define map \n\
+                              \        (f [] -> []) \n\
+                              \        (f {x : xs} -> (Cons (f x) (map f xs))))"
 
 -- | prints the type of the expression
 tycheck :: [String] -> Repl ()

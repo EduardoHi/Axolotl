@@ -1,0 +1,12 @@
+(define factr
+    (0 -> 1)
+    (a -> (* a (factr {a - 1}))))
+
+
+(define facti n -> (factiter n 1 1))
+
+(define factiter
+    (n product counter -> (if {counter > n}
+                            product
+                            (factiter n {counter * product}
+                          {counter + 1}))))
