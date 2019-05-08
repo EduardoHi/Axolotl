@@ -107,7 +107,7 @@ charLit = CharLit <$> surroundedBy singleQuote L.charLiteral
 
 -- | a comment line starts with -- and ends with a '\n', inbetween can be anything
 comment :: Parser Comment
-comment = (Comment <$> between (string "--") eol inside <?> "Comment")
+comment = (Comment <$> between (string "--") ((void eol) <|> eof) inside <?> "Comment")
   where inside = many $ noneOf ['\n']
 
 -------- Parser --------
