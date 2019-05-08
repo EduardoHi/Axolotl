@@ -7,15 +7,18 @@
 -- == equal operator
 
 
-(define fib-r
+(define fibr
     (0 -> 0)
     (1 -> 1)
-    (n -> {(fib-r {n - 1}) + (fib-r {n - 2})}))
+    (n -> {(fibr {n - 1}) + (fibr {n - 2})})
+    )
 
 
-(define fib-i
+(define fibi n -> (fibiter 1 0 n))
+
+(define fibiter
     (a b count -> (if {count == 0}
-       	       	      b
-		      (fib-i (+ a b)
-		             a
-			     {count - 1}))))
+                      b
+                      (fibiter {a + b}
+ 		                       a
+ 			                   {count - 1}))))
