@@ -58,6 +58,10 @@ tycheck input = do
 
 -- | print the current environment and it's bindings
 env :: [String] -> Repl ()
+env [x] = do
+  currentEnv <- gets _env
+  liftIO $ print $ Map.lookup x currentEnv
+
 env _ = do
   currentEnv <- gets _env
   liftIO $ mapM_ (\(k,v) -> putStrLn $ k ++ ": " ++ (show v)) $ Map.mapWithKey (,) currentEnv
@@ -87,7 +91,9 @@ evalExp e = do
   let (val,env') = runEval env e
   modify $ \is -> is {_env = env'}
   liftIO $ do
-    putStrLn $ "evaluated: " ++ (show val)
+    case val of
+      VClosure{} -> mempty
+      otherwise -> putStrLn $ "evaluated: " ++ (show val)
 
 options :: [(String, [String] -> Repl ())]
 options = [ ("help", help)    -- :help

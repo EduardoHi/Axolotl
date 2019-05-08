@@ -6,9 +6,6 @@ import qualified Data.Map as Map
 import Data.List
 import Control.Monad.State.Strict
 
-evalError msg = error msg
-
-
 
 data Value
   = VInt Int
@@ -72,7 +69,7 @@ eval term = do
       return $ VAST d
     (Case e cls) ->
       evalCase e cls
-    x -> evalError $ "failed to match pattern: " ++ (show x)
+    x -> error $ "failed to match pattern: " ++ (show x)
 
 
 evalLit :: Lit -> Evaluator Value
@@ -131,7 +128,7 @@ evalVar v = do
   env <- get
   return $ case Map.lookup v env of
              Just v  -> v
-             Nothing -> evalError $ "variable "++v++" not found"
+             Nothing -> error $ "variable "++v++" not found"
 
 evalIf :: Expr -> Expr -> Expr -> Evaluator Value
 evalIf cond eT eF = do
@@ -139,7 +136,7 @@ evalIf cond eT eF = do
   case res of
     (VADT "True" [])  -> eval eT
     (VADT "False" []) -> eval eF
-    _ -> evalError "condition in if is not a bool"
+    _ -> error "condition in if is not a bool"
 
 evalApp :: Expr -> [Expr] -> Evaluator Value
 evalApp e1 es = do
@@ -155,7 +152,7 @@ evalApp e1 es = do
     (VConstr name) -> do
       args <- mapM eval es
       return $ VADT name args
-    _ -> evalError "object not applicable"
+    _ -> error "object not applicable"
 
 
 evalPrim :: String -> [Expr] -> Evaluator Value
@@ -164,9 +161,9 @@ evalPrim name [a,b] = let f = getPrim name in
     a' <- eval a
     b' <- eval b
     return $ f a' b'
-evalPrim f args = evalError $ "incorrect arguments: " ++ (show args) ++ ", in function: " ++ f
+evalPrim f args = error $ "incorrect arguments: " ++ (show args) ++ ", in function: " ++ f
 
-noFunction name = evalError $ "function "++ name ++ " not found"
+noFunction name = error $ "function "++ name ++ " not found"
 
 getPrim :: String -> BinOp
 getPrim name = maybe (noFunction name) id primitiveFuncs
@@ -175,11 +172,11 @@ getPrim name = maybe (noFunction name) id primitiveFuncs
 
 applyVFloat :: (Float -> Float -> Float) -> BinOp
 applyVFloat f (VFloat a) (VFloat b) = VFloat (f a b)
-applyVFloat _ _ _ = evalError $ "function has wrong type of arguments"
+applyVFloat _ _ _ = error $ "function has wrong type of arguments"
 
 applyVInt :: (Int -> Int -> Int) -> BinOp
 applyVInt f (VInt a) (VInt b) = VInt (f a b)
-applyVInt _ a b = evalError $ "function has wrong type of arguments: "++(show [a,b])
+applyVInt _ a b = error $ "function has wrong type of arguments: "++(show [a,b])
 
 
 vTrue =  VADT "True" []

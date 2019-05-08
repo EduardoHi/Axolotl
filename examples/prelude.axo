@@ -1,19 +1,96 @@
-
-
-(data Bool (True) (False))
+(data Either (Left String) (Right Int))
 
 (data List (Cons a List) (Nil))
 
-(data Either (Left String) (Right Int))
-
-(data Tuple (Tuple a b))
+(data Tuple (Tuple a b)) 
 
 (data Maybe (Just a) (Nothing))
 
+(data Bool (True) (False))
 
+(data Either (Left String) (Right Int))
 
 (define id x -> x)
 
-(define map
-    (f [] -> [])
-    (f {x Cons xs} -> (Cons (f x) (map xs))))
+(define and 
+    (True True -> True)
+    (_ _ -> False))
+
+(define or
+    (_ _ -> True))
+
+(define not
+    (True -> False)
+    (_ -> True))
+    
+-- (define map
+--     (f [] -> [])
+--     (f {x Cons xs} -> (Cons (f x) (map xs))))
+-- 
+-- (define foldr
+--     (f n [] -> n)
+--     (f n {x Cons xs} -> (f (x (foldr f n xs)))))
+-- 
+-- (define foldl
+--     (f n [] -> n)
+--     (f n {x Cons xs} -> foldl f (f n x) xs))
+-- 
+
+(define head
+    ([] -> [])
+    ({x Cons _} -> x))
+
+(define tail
+    ([] -> error "Cannot call tail on empty list")
+    ({x Cons xs} -> xs))
+
+-- 
+-- (define elem
+--     (a [] -> False)
+--     (a {x Cons xs} ->
+--      (if {a == x}
+--         True
+--         (elem a xs))))
+-- 
+
+(define compose
+    (f g -> (\x -> f (g x))))
+
+(define fst
+    (Tuple a _) -> a)
+
+(define snd
+    (Tuple _ b) -> b)
+
+(define length
+    ([] -> 0)
+    ({x Cons xs} -> (+ 1 (length xs))))
+
+(define sum
+    ([] -> 0)
+    ({x Cons xs} -> (+ x (sum xs))))
+-- 
+-- (define reverse
+--     ([] -> [])
+--     ({x : []} -> {x : []})
+--     ({x : xs} -> {(reverse xs) : x}))
+-- 
+
+-- 
+-- (define take
+--     (_ [] -> [])
+--     (n {x Cons xs} -> 
+--             (if {n <= 0} 
+--                 [] 
+--                 {x Cons (take (n-1) xs)})))
+
+-- (define zip
+--     (_ [] -> [])
+--     ([] _ -> [])
+--     ({x Cons xs} {y Cons ys} -> {(Tuple x y) Cons (zip xs ys)}))
+-- 
+-- (define zipWith
+--     (_ _ [] -> [])
+--     (_ [] _ -> [])
+--     (f {x Cons xs} {y Cons ys} -> {(f x y) Cons (zipWith f xs ys)}))
+-- 
