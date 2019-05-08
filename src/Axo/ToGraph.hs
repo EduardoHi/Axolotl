@@ -86,7 +86,7 @@ parentOf' parent child = do
   newConn p c
   return p
 
-
+childrenOf' :: (Traversable t, ToGraph a) => t a -> State GraphState Node -> State GraphState Node
 childrenOf' children parent = do
   p <- parent
   mapM (\child -> do
@@ -177,13 +177,59 @@ instance ToGraph AST.Lit where
   toNode (AST.LitChar c) = terminal $ "char: " ++ show c
 
 instance ToGraph AST.Expr where
-  toNode (AST.Var v) = toNode v
-  toNode (AST.Type t) = toNode t
-  toNode (AST.Lit l) = toNode l
-  toNode (AST.App func args) = do
-    fNode <- toNode func
-    args `childrenOf'` (return fNode)
-    return fNode
+  toNode a = case a of
+               AST.Var v -> toNode v
+               AST.Type t -> toNode t
+               AST.Lit l -> toNode l
+               AST.App func args -> do
+                 fNode <- toNode func
+                 args `childrenOf'` (return fNode)
+                 return fNode
+               AST.Lam args e -> do
+                 lnode <- args `childrenOf` a
+                 (return lnode) `parentOf'` (toNode e)
+               AST.If a b c ->
+                 [a,b,c] `childrenOf` a
+               AST.Def n eqs t ->
+                 (parentOf'
+                   (childrenOf'
+                     eqs
+                     (parentOf a n))
+                   (toNode $ show t))
+               AST.Prim n es ->
+                 (childrenOf'
+                   es
+                   (parentOf a n))
+               AST.Data n ds ->
+                 (parentOf'
+                   (toNode $ show ds)
+                   (parentOf a n))
+               AST.Defun n ns e ->
+                 (parentOf'
+                   (toNode $ "arguments: " ++show ns)
+                   (parentOf a n)) `parentOf'` (toNode e)
+               AST.Case e cls -> do
+                 n <- a `parentOf` e
+                 cls `childrenOf` n
+
+instance ToGraph AST.Clause where
+  toNode (AST.Clause ch ns e) = do
+    let ch' = case ch of
+             AST.CHConstr n -> ch `parentOf` n
+             AST.CHLit l    -> ch `parentOf` l
+    (ns `childrenOf'` ch') `parentOf'` (toNode e)
+
+instance ToGraph AST.Equation where
+  toNode e@(AST.Equation ps body) = do
+    node <- ps `childrenOf` e
+    (return node) `parentOf'` (toNode body)
+
+instance ToGraph AST.Pattern where
+  toNode (AST.PVar n) = terminal $ "PVar: " ++ n
+  toNode (AST.PCon n ps) = do
+    node <- terminal $ "PCon: " ++ show n
+    ps `childrenOf` node
+  toNode (AST.PLit n) = toNode n
     
 instance ToGraph AST.Program where
   toNode p@(AST.Program es) = es `childrenOf` p

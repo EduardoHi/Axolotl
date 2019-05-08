@@ -133,7 +133,7 @@ pIf = do
 pLambda = do
   oneOf $ map CleanVar ["\\", "lambda", "λ"]
 --  (CleanVar arg) <- pAnyVar
-  args <- pWhile pAtom isCVar
+  args <- pWhile pAtom  (\x -> x /= (CleanVar "->"))
   pArr
   body <- pExpr
   return $ Lam (map _varName args) body
