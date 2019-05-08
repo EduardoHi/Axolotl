@@ -91,6 +91,7 @@ pPrim = do
 primops =  map CleanVar
   [ "+" , "-" , "/" , "*"    -- int ops
   , "+.", "-.", "/.", "*."   -- float ops
+  , "=", "!="
   ]
 
 -- | parses a function application

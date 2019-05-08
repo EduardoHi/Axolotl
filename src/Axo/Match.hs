@@ -9,19 +9,17 @@ import Control.Monad.Reader
 
 import Data.Maybe(fromJust)
 import qualified Data.Map as Map
-import Data.List(partition)
+import Data.List(nub, partition)
 import Axo.AST
 
 
 type DataConstr = (Name, Int)
 
--- DataEnvi is a map from a variable name, to it's corresponding type and it's arity
+-- DataEnv is a map from a variable name, to it's corresponding type and it's arity
 -- e.g. "Nil"  -> ("List", 0)
 --      "Cons" -> ("List", 2)
 type DataEnv = Map.Map Name DataConstr
 type Env = Map.Map Name Type
-
-emptyDataEnv = Map.empty
 
 -- Main match monad, it's a reader to consult:
 --    the arity of the constructors
@@ -30,9 +28,6 @@ emptyDataEnv = Map.empty
 -- TODO: Match can have errors too, change it to an
 -- ExceptT MatchError (Reader DataEnv)
 type Match = Reader DataEnv
-
-
-
 
 -- | filter env to only Data Constructors
 -- map from (Name, Type), to (Name, Arity)
@@ -59,7 +54,7 @@ matchExprs es = mapM matchExpr es
 matchExpr :: Expr -> Match Expr
 matchExpr e = case e of
   -- things it does not check:
-  -- that the equations are well formed (i.e. have the same number of arguments)
+  -- that the equations are well formed (i.e. have the same number of arguments, or are well typed, or there are only constructors and only literals in corresponding places)
                 (Def name eqs _) -> do
                   let k = fromIntegral $ length $ _equationPat (head eqs)
                   let newvars = makeNVar 1 k
@@ -96,21 +91,24 @@ isPVar :: Equation -> Bool
 isPVar (Equation (PVar _ : _) _) = True
 isPVar Equation{}                = False
 
-patName (PVar n) = n
-patName (PCon n _) = n
 
 isPCon :: Equation -> Bool
 isPCon (Equation (PCon _ _ : _) _) = True
 isPCon Equation{}                  = False
 
+patLit (PLit l) = l
+
 getPCon :: Equation -> Name
 getPCon (Equation (PCon c _ : _) _) = c
+
+getPLit :: Equation -> Lit
+getPLit (Equation (PLit l : _) _) = l
 
 makeVar :: Integer -> Name
 makeVar k = "_u" ++ (show k)
 
 -- | make n vars starting from k
--- e.g. makeNVar 5 4 => ["_u5","_u6","_u7","_u8"]
+-- e.g. makeNVar 5 4 => ["_u6","_u7","_u8","_u9"]
 makeNVar :: Integer -> Integer -> [Name]
 makeNVar k n = take (fromIntegral n) $ map (\i -> makeVar i) [k..]
 
@@ -148,7 +146,7 @@ then regroup equations in qs_1, ..., qs_k. then reduce the call of match:
 
 match (u:us) (qs_1, ++ ... +++ qs_k) E
 
-qs_1 = [ ((c_ ]
+qs_1 = [ ((c_1, ... ]
 
 to:
 
@@ -159,12 +157,28 @@ case u of
 
 -}
 
-matchCon :: Integer -> [Name] -> [Equation] -> Expr -> Match Expr
+-- | matchConLit mixes Constructors and Literals
+-- they are close to the same, but not close enough to make just one
+-- function.
+-- this function assumes that literals and Constructors as the first element
+-- are never mixed in the same set of equations, and that should hold
+-- always. Even if the Checker does not check it. It's safe to assume that
+-- an arg being either [] or 0 (for example) is nonsense.
+matchConLit :: Integer -> [Name] -> [Equation] -> Expr -> Match Expr
+matchConLit k us qs def = do
+  if isPCon (head qs)
+    then matchCon k us qs def
+    else matchLit k us qs def
+
 matchCon k (u:us) qs def = do
   cs <- constructors (getPCon (head qs))
   clauses <- mapM (\c -> matchClause c k (u:us) (choose c qs) def) cs
   return $ Case (Var u) clauses
 
+matchLit k (u:us) qs def = do
+  let lits = nub $ map (patLit . head . _equationPat) qs
+  clauses <- mapM (\l -> matchLitClause l k (u:us) (chooseLit l qs) def) lits
+  return $ Case (Var u) $ clauses++[Clause CHAlways [u] def]
 
 -- | choose returns all equations that begin with constructor c
 choose c qs = filter (\q -> getPCon q == c) qs
@@ -174,9 +188,20 @@ matchClause c k (_:us) qs def = do
   k' <- arity c
   let us' = makeNVar k k'
   eqs <- match (k' + k) (us'++us) ps'' def
-  return $ Clause c us' eqs
+  return $ Clause (CHConstr c) us' eqs
   where
-        ps'' = map (\(Equation ((PCon _ ps') : ps) e) -> (Equation (ps'++ps) e)) qs
+    ps'' = map (\(Equation ((PCon _ ps') : ps) e) -> (Equation (ps'++ps) e)) qs
+
+-- | chooseLit returns all equations that begin with the lit l
+chooseLit l qs = filter (\q -> getPLit q == l) qs
+
+matchLitClause :: Lit -> Integer -> [Name] -> [Equation] -> Expr -> Match Clause
+matchLitClause l k (_:us) qs def = do
+  eqs <- match k us ps'' def
+  return $ Clause (CHLit l) [] eqs
+  where
+    ps'' = map (\(Equation ((PLit _) : ps) e) -> (Equation ps e)) qs
+
 
 {-
 
@@ -211,7 +236,6 @@ E      if m == 0
 
 -}
 
-
 -- | match :: A counter -> A variables list -> a list of equations -> default expression -> a lambda case expression
 match :: Integer -> [Name] -> [Equation] -> Expr -> Match Expr
 -- empty rule
@@ -220,15 +244,13 @@ match _ [] qs def =
   return $ if (length qs) > 0
            then head $ (map _equationBody qs)++[def] -- this is the 'optimization'
            else def
-
 -- mixture rule
 -- this differs a bit from the book, because partition works different in haskell,
 -- but I think it works anyways (constructors and vars are grouped in only 2 groups)
-match k us qs def = do
+match k us qs def =
   case partition isPVar qs of
-    (qsvars, []) -> matchVar k us qsvars def
-    ([], qscons) -> matchCon k us qscons def
+    (qsvars, [])     -> matchVar k us qsvars def
+    ([], qscons)     -> matchConLit k us qscons def
     (qsvars, qscons) -> do
       m <- matchVar k us qsvars def
-      matchCon k us qscons m
-
+      matchConLit k us qscons m

@@ -3,9 +3,6 @@
 
 -- this is a function compilation with the pattern matching compiler involved, and that also uses all it's rules of the pattern matching algorithm.
 
-(define : -> Cons)
-(define [] -> Nil)
-
 (define demo
     (f [] ys             -> (a f ys))
     (f {x : xs} []       -> (b f xs))

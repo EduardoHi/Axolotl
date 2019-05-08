@@ -14,11 +14,10 @@ data Value
   = VInt Int
   | VFloat Float
   | VClosure [Name] Expr Env -- arg name, body expr, scope
-  | VBool Bool
   | VConstr Name           -- the Constructor function e.g. True, Just  , Left
   | VADT Name [Value]      -- Data Constructor Applied e.g. True, Just 1, Left "error"...  -- "in memory representation", the name of the constructor cannot be erased so that it can be pattern matched
   | VAST Expr              -- "AST" value, to make eval a total function in cases where a value makes no sense, e.g. on a data declaration
-  deriving Show
+  deriving (Show, Eq)
 
 -- Note [Eval Function Application]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,7 +39,9 @@ extend :: Env -> String -> Value -> Env
 extend env name value = Map.insert name value env
 
 extendAll :: Env -> [(String,Value)] -> Env
-extendAll env xs = Map.union env (Map.fromList xs)
+extendAll env xs = Map.union (Map.fromList xs) env
+-- order in map union matters, the new env should overwrite the older if there is a
+-- shared key
 
 type Evaluator = State Env
 
@@ -71,7 +72,7 @@ eval term = do
       return $ VAST d
     (Case e cls) ->
       evalCase e cls
---    x -> evalError $ "failed to match pattern: " ++ (show x)
+    x -> evalError $ "failed to match pattern: " ++ (show x)
 
 
 evalLit :: Lit -> Evaluator Value
@@ -94,7 +95,8 @@ evalDefine :: String -> [String] -> Expr -> Evaluator Value
 evalDefine fname args body = do
   env <- get
   let newc = VClosure args body env
-  put $ extend env fname newc
+      env' = extend env fname newc
+  put $ env'
   return newc
 
 evalCase :: Expr -> [Clause] -> Evaluator Value
@@ -102,7 +104,7 @@ evalCase e clauses = do
   caseVal <- eval e
   case caseVal of
     (VADT ne values) ->
-      case Data.List.find (\(Clause n _ _) -> n == ne) clauses of
+      case Data.List.find (\(Clause (CHConstr n) _ _) -> n == ne) clauses of
         Nothing -> error "incomplete patterns in Axo"
         Just (Clause _ args body) -> do
           env <- get
@@ -111,7 +113,18 @@ evalCase e clauses = do
           res <- eval body
           put env
           return res
-    _ -> error $ "expected an ADT, received: " ++ (show caseVal)
+    v -> evalLitClauses v clauses
+--    _ -> error $ "expected an ADT, received: " ++ (show caseVal)
+
+evalLitClauses _ [Clause CHAlways args body] = do
+  eval body
+
+evalLitClauses val ((Clause (CHLit lit) [] body):clauses) = do
+  headval <- eval (Lit lit)
+  if headval == val
+    then eval body
+    else evalLitClauses val clauses
+
 
 evalVar :: String -> Evaluator Value
 evalVar v = do
@@ -124,7 +137,8 @@ evalIf :: Expr -> Expr -> Expr -> Evaluator Value
 evalIf cond eT eF = do
   res <- eval cond
   case res of
-    (VBool r) -> if r then (eval eT) else (eval eF)
+    (VADT "True" [])  -> eval eT
+    (VADT "False" []) -> eval eF
     _ -> evalError "condition in if is not a bool"
 
 evalApp :: Expr -> [Expr] -> Evaluator Value
@@ -134,7 +148,7 @@ evalApp e1 es = do
   case objtoapply of
     (VClosure params c' env') -> do
       bindings <- (zipWith (,) params) <$> (mapM eval es)
-      put $ extendAll env' bindings
+      put $ Map.union env' $ extendAll env $ bindings
       res <- eval c'
       put $ env
       return res
@@ -156,7 +170,7 @@ noFunction name = evalError $ "function "++ name ++ " not found"
 
 getPrim :: String -> BinOp
 getPrim name = maybe (noFunction name) id primitiveFuncs
-  where primitiveFuncs = lookup name (primIntOps ++ primFloatOps)
+  where primitiveFuncs = lookup name (primIntOps ++ primFloatOps ++ compares)
 
 
 applyVFloat :: (Float -> Float -> Float) -> BinOp
@@ -166,6 +180,22 @@ applyVFloat _ _ _ = evalError $ "function has wrong type of arguments"
 applyVInt :: (Int -> Int -> Int) -> BinOp
 applyVInt f (VInt a) (VInt b) = VInt (f a b)
 applyVInt _ a b = evalError $ "function has wrong type of arguments: "++(show [a,b])
+
+
+vTrue =  VADT "True" []
+vFalse = VADT "False" []
+
+boolADT b = if b then vTrue else vFalse
+
+eq :: Value -> Value -> Value
+eq (VInt a) (VInt b) = boolADT $ a == b
+
+ne :: Value -> Value -> Value
+ne (VInt a) (VInt b) = boolADT $ a /= b
+
+compares = [ ("=" , eq)
+           , ("!=", ne)
+                        ]
 
 primIntOps :: [(String, BinOp)]
 primIntOps = [ ("+", applyVInt (+) )

@@ -155,15 +155,13 @@ check expr = case expr of
 
 
 runCheck :: Env -> Check a -> Either TypeError a  
-runCheck env = flip runReader env . runExceptT
+runCheck env = flip runReader (Map.union primEnv env) . runExceptT
 
 checkTop :: Env -> Expr -> Either TypeError (Type, Env)
 checkTop env x = runCheck env $ (checkExprs [x])
 
 checkProgram :: Env -> [Expr] -> Either TypeError (Type, Env)
 checkProgram env exps = runCheck env $ (checkExprs exps)
-
-checkWithPrim expr = runCheck primEnv (check expr)
 
 primEnv = Map.fromList [
                        -- int ops
@@ -176,4 +174,6 @@ primEnv = Map.fromList [
                        , ("-.", TArr [TFloat, TFloat, TFloat])
                        , ("/.", TArr [TFloat, TFloat, TFloat])
                        , ("*.", TArr [TFloat, TFloat, TFloat])
+
+                       , ("=", TArr [TInt, TInt, TInt])
                        ]
