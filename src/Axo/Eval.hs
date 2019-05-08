@@ -122,7 +122,8 @@ evalCase e clauses = do
         Just (Clause _ args body) -> do
           env <- get
           let bindings = zipWith (,) args values
-          put $ extendAll env bindings
+          let extended = extendAll env bindings
+          put extended
           res <- eval body
           put env
           return res
@@ -131,13 +132,12 @@ evalCase e clauses = do
 
 evalLitClauses _ [Clause CHAlways args body] = do
   eval body
-
 evalLitClauses val ((Clause (CHLit lit) [] body):clauses) = do
   headval <- eval (Lit lit)
   if headval == val
     then eval body
     else evalLitClauses val clauses
-
+evalLitClauses v _ = error $ "unexpected literal, received: " ++ (show v)
 
 evalVar :: String -> Evaluator Value
 evalVar v = do

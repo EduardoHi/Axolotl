@@ -108,7 +108,7 @@ makeVar :: Integer -> Name
 makeVar k = "_u" ++ (show k)
 
 -- | make n vars starting from k
--- e.g. makeNVar 5 4 => ["_u6","_u7","_u8","_u9"]
+-- e.g. makeNVar 5 4 => ["_u5","_u6","_u7","_u8"]
 makeNVar :: Integer -> Integer -> [Name]
 makeNVar k n = take (fromIntegral n) $ map (\i -> makeVar i) [k..]
 
@@ -172,7 +172,7 @@ matchConLit k us qs def = do
 
 matchCon k (u:us) qs def = do
   cs <- constructors (getPCon (head qs))
-  clauses <- mapM (\c -> matchClause c k (u:us) (choose c qs) def) cs
+  clauses <- mapM (\c -> matchClause c (k+1) (u:us) (choose c qs) def) cs
   return $ Case (Var u) clauses
 
 matchLit k (u:us) qs def = do
