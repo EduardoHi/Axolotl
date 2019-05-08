@@ -28,6 +28,7 @@ import Data.Data
 data Type
   = TInt        -- e.g. Int
   | TFloat      -- e.g. Float
+  | TChar       -- e.g. Char
   | TArr [Type] -- e.g. Int -> Int -> Int
   | TADT Name   -- e.g. List
   | TAny        -- infamous and hacky Any type, but needed, because of lack of inference :(

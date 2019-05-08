@@ -88,7 +88,7 @@ evalExps exps = mapM_ evalExp exps
 evalExp :: AST.Expr -> Repl ()
 evalExp e = do
   env  <- gets _env
-  let (val,env') = runEval env e
+  (val,env') <- liftIO $ runEval env e
   modify $ \is -> is {_env = env'}
   liftIO $ do
     case val of

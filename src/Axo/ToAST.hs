@@ -86,13 +86,14 @@ pAtom = do
 pPrim :: Parser Expr
 pPrim = do
   (CleanVar fname) <- oneOf $ primops
-  rest <- some pExpr
+  rest <- many pExpr
   return $ Prim fname rest
 
 primops =  map CleanVar
   [ "+" , "-" , "/" , "*"    -- int ops
   , "+.", "-.", "/.", "*."   -- float ops
   , "=", "!="
+  , "getChar", "putChar"
   ]
 
 -- | parses a function application

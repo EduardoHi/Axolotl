@@ -10,6 +10,7 @@ import Control.Monad.State.Strict
 data Value
   = VInt Int
   | VFloat Float
+  | VChar Char
   | VClosure [Name] Expr Env -- arg name, body expr, scope
   | VConstr Name           -- the Constructor function e.g. True, Just  , Left
   | VADT Name [Value]      -- Data Constructor Applied e.g. True, Just 1, Left "error"...  -- "in memory representation", the name of the constructor cannot be erased so that it can be pattern matched
@@ -40,10 +41,10 @@ extendAll env xs = Map.union (Map.fromList xs) env
 -- order in map union matters, the new env should overwrite the older if there is a
 -- shared key
 
-type Evaluator = State Env
+type Evaluator = StateT Env IO
 
-runEval :: Env -> Expr -> (Value, Env)
-runEval env e = runState (eval e) env
+runEval :: Env -> Expr -> IO (Value, Env)
+runEval env e = runStateT (eval e) env
 
 -- eval :: Env -> Expr -> Value
 eval :: Expr -> Evaluator Value
@@ -74,8 +75,9 @@ eval term = do
 
 evalLit :: Lit -> Evaluator Value
 evalLit x = return $ case x of
-                       (LitInt i) -> VInt i
+                       (LitInt i)   -> VInt i
                        (LitFloat f) -> VFloat f
+                       (LitChar c)  -> VChar c
                        -- ...
 
 evalData :: [DConstr] -> Evaluator ()
@@ -161,9 +163,14 @@ evalPrim name [a,b] = let f = getPrim name in
     a' <- eval a
     b' <- eval b
     return $ f a' b'
-evalPrim f args = error $ "incorrect arguments: " ++ (show args) ++ ", in function: " ++ f
+evalPrim f args = do
+  argvals <- mapM eval args
+  getPrimIO f argvals
 
 noFunction name = error $ "function "++ name ++ " not found"
+
+getPrimIO :: String -> [Value] -> Evaluator Value
+getPrimIO name = maybe (noFunction name) id $ lookup name primIO
 
 getPrim :: String -> BinOp
 getPrim name = maybe (noFunction name) id primitiveFuncs
@@ -192,7 +199,20 @@ ne (VInt a) (VInt b) = boolADT $ a /= b
 
 compares = [ ("=" , eq)
            , ("!=", ne)
-                        ]
+           ]
+
+aGetChar :: [Value] -> Evaluator Value
+aGetChar [] = VChar <$> liftIO getChar
+
+aPutChar :: [Value] -> Evaluator Value
+aPutChar [VChar c] = do
+  liftIO $ putChar c
+  return vTrue
+
+primIO :: [(String, [Value] -> Evaluator Value)]
+primIO = [ ("getChar", aGetChar)
+         , ("putChar", aPutChar)
+         ]
 
 primIntOps :: [(String, BinOp)]
 primIntOps = [ ("+", applyVInt (+) )
