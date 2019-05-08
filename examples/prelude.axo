@@ -33,10 +33,9 @@
     (f n [] -> n)
     (f n {x : xs} -> (f x (foldr f n xs))))
 
--- (define foldl
---     (f n [] -> n)
---     (f n {x : xs} -> foldl f (f n x) xs))
--- 
+(define foldl
+        (f n [] -> n)
+        (f n {x : xs} -> (foldl f (f n x) xs)))
 
 (define head
     ([] -> [])
@@ -59,7 +58,7 @@
  
 
 (define compose
-    (f g -> (\x -> f (g x))))
+    (f g -> (\x -> (f (g x)))))
 
 (define fst
     (Tuple a _) -> a)
@@ -89,13 +88,18 @@
 --                 [] 
 --                 {x Cons (take (n-1) xs)})))
 
--- (define zip
---     (_ [] -> [])
---     ([] _ -> [])
---     ({x Cons xs} {y Cons ys} -> {(Tuple x y) Cons (zip xs ys)}))
--- 
--- (define zipWith
---     (_ _ [] -> [])
---     (_ [] _ -> [])
---     (f {x Cons xs} {y Cons ys} -> {(f x y) Cons (zipWith f xs ys)}))
---
+(define zip    (_ [] -> [])    ([] _ -> [])    ({x Cons xs} {y Cons ys} -> {(Tuple x y) Cons (zip xs ys)}))
+
+(define zipWith
+    (_ _ [] -> [])
+    (_ [] _ -> [])
+    (f {x Cons xs} {y Cons ys} -> {(f x y) Cons (zipWith f xs ys)}))
+
+
+-- quicksort
+(define sort
+        ([] -> [])
+        ({x : xs} -> {(sort (filter (\y -> {x < y}) xs))
+                       ++ {([ x ])
+                       ++ (sort (filter (\y -> {x >= y} xs)))}}))
+                                 
