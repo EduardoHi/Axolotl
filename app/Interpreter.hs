@@ -45,7 +45,8 @@ completer _ = do
 
 -- Commands
 help :: [String] -> Repl ()
-help args = liftIO $ print $ "Help: " ++ show args
+help _ = liftIO $ putStrLn $ "Quick Reference:    \n\
+                              \   and unescape to keep writing"
 
 -- | prints the type of the expression
 tycheck :: [String] -> Repl ()
