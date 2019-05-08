@@ -93,7 +93,14 @@ pPrim = do
 primops =  map CleanVar
   [ "+" , "-" , "/" , "*"    -- int ops
   , "+.", "-.", "/.", "*."   -- float ops
-  , "=", "!="
+
+  , "=="
+  , "!="
+  , "<="
+  , "<"
+  , ">="
+  , ">"
+
   , "getChar", "putChar"
   ]
 

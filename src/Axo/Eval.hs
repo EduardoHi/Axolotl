@@ -188,7 +188,7 @@ getPrimIO name = maybe (noFunction name) id $ lookup name primIO
 
 getPrim :: String -> BinOp
 getPrim name = maybe (noFunction name) id primitiveFuncs
-  where primitiveFuncs = lookup name (primIntOps ++ primFloatOps ++ compares)
+  where primitiveFuncs = lookup name (primIntOps ++ primFloatOps ++ primComps)
 
 
 applyVFloat :: (Float -> Float -> Float) -> BinOp
@@ -199,21 +199,6 @@ applyVInt :: (Int -> Int -> Int) -> BinOp
 applyVInt f (VInt a) (VInt b) = VInt (f a b)
 applyVInt _ a b = error $ "function has wrong type of arguments: "++(show [a,b])
 
-
-vTrue =  VADT "True" []
-vFalse = VADT "False" []
-
-boolADT b = if b then vTrue else vFalse
-
-eq :: Value -> Value -> Value
-eq (VInt a) (VInt b) = boolADT $ a == b
-
-ne :: Value -> Value -> Value
-ne (VInt a) (VInt b) = boolADT $ a /= b
-
-compares = [ ("=" , eq)
-           , ("!=", ne)
-           ]
 
 aGetChar :: [Value] -> Evaluator Value
 aGetChar [] = VChar <$> liftIO getChar
@@ -227,6 +212,51 @@ primIO :: [(String, [Value] -> Evaluator Value)]
 primIO = [ ("getChar", aGetChar)
          , ("putChar", aPutChar)
          ]
+
+
+vLT = VADT "LT" []
+vGT = VADT "GT" []
+vEQ = VADT "EQ" []
+
+vTrue =  VADT "True" []
+vFalse = VADT "False" []
+
+compareVi (VInt a) (VInt b) = compare a b
+
+boolADT b = if b then vTrue else vFalse
+
+eq a b =
+  case compareVi a b of
+    EQ -> True
+    _  -> False
+
+lte a b =
+  case compareVi a b of
+    GT -> False
+    _  -> True
+
+ne a b = not $ eq a b
+lt a b = (lte a b) && (not $ eq a b)
+
+gte a b = not $ lt a b
+gt a b  = not $ lte a b
+
+peq a b  = boolADT $ eq a b
+pne a b  = boolADT $ ne a b
+
+plte a b = boolADT $ lte a b
+plt a b  = boolADT $ (lte a b) && (not $ eq a b) 
+
+pgte a b = boolADT $ gte a b
+pgt a b  = boolADT $ gt a b
+
+primComps = [ ("==" , peq)
+            , ("!=" , pne)
+            , ("<=" , plte)
+            , ("<"  , plt)
+            , (">=" , pgte)
+            , (">"  , pgt)
+            ]
 
 primIntOps :: [(String, BinOp)]
 primIntOps = [ ("+", applyVInt (+) )

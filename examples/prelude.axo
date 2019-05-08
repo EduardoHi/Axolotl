@@ -10,6 +10,8 @@
 
 (data Either (Left String) (Right Int))
 
+(data Ordering (LT) (GT) (EQ))
+
 (define id x -> x)
 
 (define and 
@@ -93,4 +95,4 @@
 --     (_ _ [] -> [])
 --     (_ [] _ -> [])
 --     (f {x Cons xs} {y Cons ys} -> {(f x y) Cons (zipWith f xs ys)}))
--- 
+--

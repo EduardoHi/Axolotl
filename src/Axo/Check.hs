@@ -192,7 +192,16 @@ primEnv = Map.fromList [
                        , ("/.", TArr [TFloat, TFloat, TFloat])
                        , ("*.", TArr [TFloat, TFloat, TFloat])
 
-                       , ("=", TArr [TInt, TInt, TInt])
+
+                       , ("==", TArr [TInt, TInt, TADT "Bool"])
+                       , ("!=", TArr [TInt, TInt, TADT "Bool"])
+                       , ("<=", TArr [TInt, TInt, TADT "Bool"])
+                       , ("<" , TArr [TInt, TInt, TADT "Bool"])
+                       , (">=", TArr [TInt, TInt, TADT "Bool"])
+                       , (">" , TArr [TInt, TInt, TADT "Bool"])
+
+
+                       , ("compare", TArr [TInt, TInt, TADT "Ordering"])
 
                        , ("getChar", TAny)
                        , ("putChar", TAny)
