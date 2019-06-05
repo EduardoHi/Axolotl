@@ -124,3 +124,27 @@ subst e o n = case e of
   x              -> x
   where subst' x = subst x o n
         replace = map (\x -> if x == o then n else x)
+
+-- | given the arguments and the body of a function, return the free variables inside it.
+freeVars :: [Name] -> Expr -> [Name]
+freeVars args body =
+  case body of
+    Var v -> if  v `elem` args then [] else [v]
+    Type  t -> if t `elem` args then [] else [t]
+    Lit _ -> []
+    App e es -> (freeVars args e) ++ (concatMap (freeVars args) es)
+    Lam largs lbody -> freeVars (args++largs) lbody
+    If a b c -> (freeVars args a) ++ (freeVars args b) ++ (freeVars args c)
+    -- no Def should be here at this point
+    Prim p es -> (concatMap (freeVars args) es)
+    Data{} -> []
+    --
+    Defun _ dargs dbody -> (freeVars (args++dargs) dbody)
+    Case e cls -> (freeVars args e) ++
+                  (concatMap
+                    (\(Clause _ clargs chbody) ->
+                        freeVars (args++clargs) chbody) cls)
+    Let n exprToBind letbody -> freeVars (args++[n]) exprToBind ++ (maybe [] (\b -> freeVars (args++[n]) b) letbody)
+    
+    
+-- VARS :: EXPRu -> 

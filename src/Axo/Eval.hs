@@ -3,6 +3,7 @@ module Axo.Eval where
 
 import Axo.AST
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.List
 import Control.Monad.State.Strict
 
@@ -38,6 +39,10 @@ extend env name value = Map.insert name value env
 
 extendAll :: Env -> [(String,Value)] -> Env
 extendAll env xs = Map.union (Map.fromList xs) env
+
+-- | given a list of names, return an env with only those inside
+refineEnv :: [Name] -> Env -> Env
+refineEnv ns e = Map.restrictKeys e (Set.fromList ns)
 -- order in map union matters, the new env should overwrite the older if there is a
 -- shared key
 
@@ -58,12 +63,11 @@ eval term = do
       evalDefine fname args body
     (If cond expT expF) ->     -- (if condition if-true if-false)
       evalIf cond expT expF
-    (Lam arg body) ->          -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
-      return $ VClosure arg body env
+    (Lam args body) ->         -- (\ x -> (\ y -> (+ x y))) -- Lambda Abstraction
+      return $ VClosure args body (refineEnv (freeVars args body) env)
     (Prim f args) ->
       evalPrim f args
     (App e1 es) ->             -- See Note [Eval Function Application]
-      -- TODO: Multiple arguments, i.e. every element of e2, not only the head
       evalApp e1 es
     d@(Data _ constrs) -> do
       evalData constrs
@@ -107,7 +111,7 @@ evalData constructors = do
 evalDefine :: String -> [String] -> Expr -> Evaluator Value
 evalDefine fname args body = do
   env <- get
-  let newc = VClosure args body env
+  let newc = VClosure args body (refineEnv (freeVars args body) env)
       env' = extend env fname newc
   put $ env'
   return newc
