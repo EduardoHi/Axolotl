@@ -1,91 +1,120 @@
+#+STARTUP: indent
+#+LATEX_HEADER: \usepackage[numberedbib]{apacite}
+#+LATEX_HEADER: \usepackage{graphicx} 
+#+LATEX_HEADER: \usepackage[margin=0.5in]{geometry}
+#+LATEX_HEADER: \usepackage{float}
+#+LATEX: \setlength\parindent{0pt}
+#+LATEX_CLASS_OPTIONS: [12pt]
+#+OPTIONS: toc:nil title:nil 
+
+\begin{titlepage}
+	\centering
+	\vspace{1.5cm}
+	{\huge\bfseries The Axolotl Programming Language Specification\par}
+	\vspace{2cm}
+	{\Large\itshape \begin{tabular}{ l c }
+			Eduardo Salvador Hidalgo Vargas\\
+			Andrés Ricardo Garza Vela\\
+			\end{tabular} \par}
+	\vfill
+\end{titlepage}	
+
+\tableofcontents
+\clearpage
+
+# Cortázar quote on second page
+\vspace*{\fill} 
+\begin{quote} 
+\Large
+\centering 	
+Hubo un tiempo en que yo pensaba mucho en los axolotl. Iba a verlos al acuario del Jardín des Plantes y me
+quedaba horas mirándolos, observando su inmovilidad, sus oscuros movimientos. Ahora soy un axolotl.
+
+- \emph{Julio Cortázar}
+\end{quote}
+\vspace*{\fill}
+\clearpage
 
 
 
-* Axo
-  
-** Vision / Purpose
+* Vision/Purpose
+Axo is our vision of Haskell principles as a Lisp dialect. While Haskell has a "clean syntax", it is full of 
+syntactic sugar that makes it hard to reason or learn about. This makes source-code transformations inaccessible
+to most programmers. Haskell is already good at meta-programming via type classes, template Haskell and so on but
+it lacks some of the power that macros can offer. Therefore, we propose a new programming language that addresses
+this shortcoming while preserving Haskell semantics by instead using Lisp syntax (with some extra syntax features
+that we consider to be convenient for programming in idiomatic Haskell).
 
-Axo is how we imagine Haskell as a Lisp. While Haskell has a "clean syntax" it is full syntactic sugar that makes it
-harder to reason/learn about, also, this makes source-code transformations not accesible to most programmers.
-Haskell is already good at meta-programming, with type classes, template haskell, etc. But it lacks some of the power
-that macros can offer. Therefore, we propose a new programming language with Haskell semantics,
-but with Lisp syntax, plus some syntax features that we think are convenient for programming haskell style.
+** Main objective
+To implement a Haskell-like Lisp: a strongly typed, purely functional programming language.
 
-** Main objective, category
+* Language requirements
+**  Basic Elements
+Axolotl *is case sensitive*.
 
-A haskell-like Lisp. Strongly typed purely functional programming language.
+#+ATTR_LATEX: :environment tabular :align | p{0.22\textwidth} | p{0.44\textwidth} | p{0.22\textwidth} |
+#+CAPTION: Tokens
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| *Name*         | *Description*                                                      | *Examples*                  |
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| Integer        | one or more digits [0-9]+                                          | `1`, `234`, `3556`          |
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| Float          | one or more digits, a decimal point followed by one or more digits | `1.23`, `0.5`, `2234`       |
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| String literal | any char or escaped char between double quotes                     | `"a string"`                |
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| Char literal   | only one char or escaped char between single quotes                | 'a' `,` ='\t'=              |
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| varId          | any sequence of non reserved chars, starting with a lowercase char | `a`, `solve`, `x0`, =`>>=`= |
+|----------------+--------------------------------------------------------------------+-----------------------------|
+| typeId         | any sequence of non reserved chars, starting with a uppercase char | `List`, `Maybe`, `Int`      |
+|----------------+--------------------------------------------------------------------+-----------------------------|
 
-** Language requirements
+** Syntax Diagrams
 
+*** Grammar:
+#+ATTR_LATEX: :environment tabular :align  p{0.25\textwidth}  p{0.70\textwidth} 
+| Program           | ::= SExp+                                           |
+| SExp              | ::= '(' ExpSeq ')'                                  |
+| ExpSeq            | ::= Exp ("space" Exp)+                              |
+| Exp               | ::= (SExp \vert Atom \vert IExp \vert InfixExp)     |
+| Atom              | ::= (Identifier \vert Literal)                      |
+| Literal           | ::= (Int \vert Float \vert String \vert Char)       |
+| IExp              | ::= ExpSeq "newline" ("<indent>" ExpSeq "newline")+ |
+| InfixExp          | ::= '{' Exp "space" Exp "space" Exp '}'             |
+| CommentSingleLine | ::= '-' '-'                                         |
+| CommentMultiLine  | ::= "--(" ".*" "--)"                                |
 
-***  Basic Elements
-
-All the language is case sensitive
-
-Tokens:
-
-| name           | Description                                                        | examples                 |
-|----------------+--------------------------------------------------------------------+--------------------------|
-| Integer        | one or more digits [0-9]+                                          | `1`, `234`, `3556`       |
-|----------------+--------------------------------------------------------------------+--------------------------|
-| Float          | one or more digits, a decimal point followed by one or more digits | `1.23`, `0.5`, `2234`    |
-|----------------+--------------------------------------------------------------------+--------------------------|
-| string literal | any char or escaped char between double quotes                     | `"a string"`,`"          |
-|----------------+--------------------------------------------------------------------+--------------------------|
-| char literal   | only one char or eschaped char between single quotes               | `'a'`,`'\t'`             |
-|----------------+--------------------------------------------------------------------+--------------------------|
-| varId          | any sequence of non reserved chars, starting with a lowercase char | `a`, `solve`, `x0`,`>>=` |
-|----------------+--------------------------------------------------------------------+--------------------------|
-| typeId         | any sequence of non reserved chars, starting with a uppercase char | `List`, `Maybe`, `Int`   |
-|----------------+--------------------------------------------------------------------+--------------------------|
-
-
-*** Syntax Diagrams
-
-Grammar:
-
-Program ::= SExp+
-SExp ::= '(' ExpSeq ')'
-ExpSeq ::= Exp ("space" Exp)+
-Exp ::= (SExp | Atom | IExp | InfixExp)
-Atom ::= (Identifier | Literal)
-Literal ::= (Int | Float | String | Char)
-IExp ::= ExpSeq "newline" ("<indent>" ExpSeq "newline")+
-InfixExp ::= '{' Exp "space" Exp "space" Exp '}'
-CommentSingleLine ::= '-' '-'
-CommentMultiLine ::= "--(" ".*" "--)"
-
-Lexems: 
-
-digit ::= [0-9]w
-letter ::= [a-zA-Z]
-decimal ::= [0-9]+
-Int ::= decimal
-Float ::= decimal "." decimal
-UniChar ::= "Any Unicod ‘=0-e character"
-LowerUni ::= "Any lowercase Unicode character"
-UpperUni ::= "Any uppercase Unicode character"
-Char ::= "'" UniChar "'"
-String ::= '"' UniChar+ '"'
-Identifier ::= ( VarId | TypeId )
-VarId ::= LowerUni (UniChar - ReservedChars)*
-TypeId ::= UpperUni (UniChar - ReservedChars)*
-ReservedChars ::= ('(' | ')' | '{' | '}') | ' ' | 'whitespace'
-ValidSymbol ::=  UniChar - ReservedChars
-NotDoubleQuote ::= UniChar - ' "" '
+*** Lexems: 
+#+ATTR_LATEX: :environment tabular :align  p{0.25\textwidth}  p{0.70\textwidth} 
+| digit          | ::= [0-9]w                                                           |
+| letter         | ::= [a-zA-Z]                                                         |
+| decimal        | ::= [0-9]+                                                           |
+| Int            | ::= decimal                                                          |
+| Float          | ::= decimal "." decimal                                              |
+| UniChar        | ::= "Any Unicode character"                                          |
+| LowerUni       | ::= "Any lowercase Unicode character"                                |
+| UpperUni       | ::= "Any uppercase Unicode character"                                |
+| Char           | ::= "'" UniChar "'"                                                  |
+| String         | ::= '"' UniChar+ '"'                                                 |
+| Identifier     | ::= ( VarId \vert TypeId )                                           |
+| VarId          | ::= LowerUni (UniChar - ReservedChars)*                              |
+| TypeId         | ::= UpperUni (UniChar - ReservedChars)*                              |
+| ReservedChars  | ::= ('(' \vert ')' \vert '{' \vert '}') \vert ' ' \vert 'whitespace' |
+| ValidSymbol    | ::=  UniChar - ReservedChars                                         |
+| NotDoubleQuote | ::= UniChar - ' "" '                                                 |
 
 
 *** Semantic Characteristics
+Our language is divided into two fields: values and types. Values are data whereas types are sets of 
+values.
 
-
-Our language is divided into two fields: values and types. Values are data whereas types are sets of values. 
-
-Values and expressions
-
+**** *Values and expressions*
 - The language has semantics close to Haskell. 
 - It has a strong static type system, therefore every expression has a type.
 - All variables are immutable.
-- Functions are automatically curried, therefore it's easy to partially apply, the disadvantage is that there are no variable arity functions.
+- Functions are automatically curried, therefore it's easy to partially apply. The disadvantage is
+  that functions cannot have variable arity.
 
 The field of values include primitives and user defined. Primitives like a number, a character or a function, and user defined like a tree. These are all first class.
 Expressions are a combination of values by the means of function application. For example `(+ 2 3)` or the function `(\ x -> (* x x))`.

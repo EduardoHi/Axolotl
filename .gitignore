@@ -1,4 +1,6 @@
-
+# LaTeX output
+*.bbl
+*.tex
 
 # emacs stuff
 
