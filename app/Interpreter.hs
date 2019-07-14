@@ -2,22 +2,23 @@
 module Interpreter where
 
 
-import Control.Monad.State.Strict
-import qualified Data.Map as Map
-import System.Console.Repline
+import           Control.Monad.State.Strict
+import qualified Data.Map                   as Map
+import           System.Console.Repline
 
 
-import Compiler (emptyState, runCompilerM, loadExpr, loadFile, CompilerState(..))
+import           Compiler                   (CompilerState (..), emptyState,
+                                             loadExpr, loadFile, runCompilerM)
 
-import Axo.Eval
-import qualified Axo.AST as AST (Expr(..), Program(..))
+import qualified Axo.AST                    as AST (Expr (..), Program (..))
+import           Axo.Eval
 
 data InterpreterState = InterpreterState
   { _env    :: Env
   , _cstate :: CompilerState
   }
 
-initialState = InterpreterState emptyEnv emptyState
+initialState = InterpreterState primEnv emptyState
 
 type Repl a = HaskelineT (StateT InterpreterState IO) a
 
@@ -77,7 +78,7 @@ tycheck input = do
   cstate <- gets _cstate
   (res,_) <- liftIO $ runCompilerM (loadExpr $ unlines input) cstate
   liftIO $ case res of
-             Left err -> putStrLn err
+             Left err    -> putStrLn err
              Right (_,t) -> print t
 
 -- | print the current environment and it's bindings
@@ -117,7 +118,7 @@ evalExp e = do
   liftIO $ do
     case val of
       VClosure{} -> mempty
-      otherwise -> putStrLn $ "evaluated: " ++ (show val)
+      otherwise  -> putStrLn $ "evaluated: " ++ (show val)
 
 options :: [(String, [String] -> Repl ())]
 options = [ ("help", help)    -- :help
