@@ -109,206 +109,222 @@ Axolotl *is case sensitive*.
 Our language is divided into two fields: values and types. Values are data whereas types are sets of 
 values.
 
-**** *Values and expressions*
-- The language has semantics close to Haskell. 
-- It has a strong static type system, therefore every expression has a type.
-- All variables are immutable.
-- Functions are automatically curried, therefore it's easy to partially apply. The disadvantage is
-  that functions cannot have variable arity.
+- *Values and expressions*
+  - The language has semantics close to Haskell. 
+  - It has a strong static type system, therefore every expression has a type.
+  - All variables are immutable.
+  - Functions are automatically curried, therefore it's easy to partially apply. The disadvantage is
+    that functions cannot have variable arity.
 
-The field of values include primitives and user defined. Primitives like a number, a character or a function, and user defined like a tree. These are all first class.
-Expressions are a combination of values by the means of function application. For example `(+ 2 3)` or the function `(\ x -> (* x x))`.
-There is a very special value: undefined. When undefined is evaluated, the program crashes. Undefined allows us to define [partial functions](https://en.wikipedia.org/wiki/Partial_function).
-Similarly there is a very special function: error. This function receives a String s and returns undefined, which will crash the program with the error message s.
+/Values/ include /primitives/ and /user defined/. Examples of /primitives/ are numbers,
+characters or a given function (e.g. =+=). Examples of /user defined values/ may include a tree. 
+These are all first class.\\
 
-It is important to note that Axo does not differentiate between functions and operators, because the simplicity of the syntax allows an identifier to be composed of only symbols.
+Expressions are a combination of values by the means of function application. For example =(+ 2 3)=
+or the function =(\ x -> (* x x))=. There is a very special value: =undefined=. When =undefined= is
+evaluated, the program crashes. =Undefined= allows us to define [[https://en.wikipedia.org/wiki/Partial_function][partial functions]]. Similarly there 
+is a very special function: =error=. This function receives a String s and returns =undefined=, which 
+will crash the program with the error message s.\\
 
-**** Looping
+It is important to note that Axo does not differentiate between functions and operators, because the 
+simplicity of the syntax allows an identifier to be composed of only symbols.\\
+\clearpage
+
+**** *Looping*
 
 To write something that can be executed multiple times, one should write recursive function:
 
-```
+#+BEGIN_SRC
 define (loop x)
-    if {x == 0}
-       0
-       (loop {x - 1})
-```
+  if {x == 0}
+     0
+     (loop {x - 1})
 
-```
 define (fibonnaci n)
-    cond ({n == 0} 0)
-    	 ({n == 1} 0)
-	 (else (fibonnaci {n - 1}))
-``` 
+  cond ({n == 0} 0)
+       ({n == 1} 0)
+       (else (fibonnaci {n - 1}))
+#+END_SRC
 
-**** On Folds
+**** *On Folds*
 
-From a functional programming perspective, folds are called catamorphisms, this is important because they are equivalent to a _for-each loop_ in other languages.
-Therefore, if we can add folds to our language, we can express this loops.
+From a functional programming perspective, folds are called /catamorphisms/. This is important because
+they are equivalent to a =for-each= loop in other languages. Therefore, if we can add folds to our 
+language, we can express these loops.
 
-fold right associative:
+- *Right associative fold:*
 
-```
+#+BEGIN_SRC
 define (foldr f end xs)
     if (null? xs) 
        end
        (f (head xs) (foldr f end (tail xs)))
-```
+#+END_SRC
 
-fold left associative:
+- *Left associative fold:*
 
-```
+#+BEGIN_SRC
 define (foldl f a xs)
     if (null? xs) 
        a
        (foldl f (f a (head xs)) (tail xs))
-```
-
+#+END_SRC
 
 *** Special Functions and Forms
+**** *Input/Output*
+***** *IO primitives*
+#+ATTR_LATEX: :environment tabular :align  | p{0.15\textwidth} | p{0.50\textwidth} |
+|---------------+-------------------------------------------|
+| *Name*        | *Description*                             |
+|---------------+-------------------------------------------|
+| =putChar=     | writes a char                             |
+|---------------+-------------------------------------------|
+| =putStr=      | writes a string                           |
+|---------------+-------------------------------------------|
+| =putStrLn=    | writes a string with a newline at the end |
+|---------------+-------------------------------------------|
+| =getChar=     | reads one char                            |
+|---------------+-------------------------------------------|
+| =getLine=     | reads a complete line                     |
+|---------------+-------------------------------------------|
+| =getContents= | reads all the content                     |
+|---------------+-------------------------------------------|
+\clearpage
 
-**** Input/Output
-
-***** IO primitives
-
-| Name          | Description                                |
-|---------------+--------------------------------------------|
-| `putChar`     | writes a char                              |
-|---------------+--------------------------------------------|
-| `putStr`      | writes a string                            |
-|---------------+--------------------------------------------|
-| `putStrLn`    | writes a string with a newline at the end  |
-|---------------+--------------------------------------------|
-| `getChar`     | reads one char                             |
-|---------------+--------------------------------------------|
-| `getLine`     | reads a complete line                      |
-|---------------+--------------------------------------------|
-| `getContents` | reads all the content                      |
-|---------------+--------------------------------------------|
-
-***** IO higher level
-
-| Name        | Description                                                                 |
+***** *IO higher level*
+#+ATTR_LATEX: :environment tabular :align  | p{0.15\textwidth} | p{0.50\textwidth} |
 |-------------+-----------------------------------------------------------------------------|
-| `write`     | writes data in a way that can be read by the machine                        |
+| *Name*      | *Description*                                                               |
 |-------------+-----------------------------------------------------------------------------|
-| `read`      | reads input and returns the data parsed                                     |
+| =write=     | writes data in a way that can be read by the machine                        |
 |-------------+-----------------------------------------------------------------------------|
-| `display`   | prints data in a way that can be read by a  human                           |
+| =read=      | reads input and returns the data parsed                                     |
 |-------------+-----------------------------------------------------------------------------|
-| `displayLn` | prints data and a newline at the end, in a way that can be read by a  human |
+| =display=   | prints data in a way that can be read by a  human                           |
+|-------------+-----------------------------------------------------------------------------|
+| =displayLn= | prints data and a newline at the end, in a way that can be read by a  human |
 |-------------+-----------------------------------------------------------------------------|
 
-**** Math Functions
+**** *Math Functions*
 
-***** Integers 
-
-| Name  | Description          |
-|-------+----------------------|
-| `+`   | integer sum          |
-|-------+----------------------|
-| `-`   | integer substraction |
-|-------+----------------------|
-| `*`   | integer product      |
-|-------+----------------------|
-| `/`   | integer division     |
-|-------+----------------------|
-| `mod` | modulo               |
-|-------+----------------------|
-
-***** Floats
-
-| Name   | Description          |
+***** *Integers*
+#+ATTR_LATEX: :environment tabular :align  | p{0.15\textwidth} | p{0.50\textwidth} |
 |--------+----------------------|
-| `+.`   | float sum            |
+| *Name* | *Description*        |
 |--------+----------------------|
-| `-.`   | float substraction   |
+| =+=    | integer sum          |
 |--------+----------------------|
-| `*.`   | float product        |
+| =-=    | integer substraction |
 |--------+----------------------|
-| `/.`   | float division       |
+| =*=    | integer product      |
 |--------+----------------------|
-| `sqrt` | square root function |
+| =/=    | integer division     |
 |--------+----------------------|
-| `log`  | logarithm of x       |
-|--------+----------------------|
-| `exp`  | exponential of x     |
+| =mod=  | modulo               |
 |--------+----------------------|
 
-**** Special Forms
+***** *Floats*
+#+ATTR_LATEX: :environment tabular :align  | p{0.15\textwidth} | p{0.50\textwidth} |
+|--------+----------------------|
+| *Name* | *Description*        |
+|--------+----------------------|
+| =+.=   | float sum            |
+|--------+----------------------|
+| =-.=   | float substraction   |
+|--------+----------------------|
+| =*.=   | float product        |
+|--------+----------------------|
+| =/.=   | float division       |
+|--------+----------------------|
+| =sqrt= | square root function |
+|--------+----------------------|
+| =log=  | logarithm of x       |
+|--------+----------------------|
+| =exp=  | exponential of x     |
+|--------+----------------------|
 
-| Name     | Description                                                                    | Grammar                                        |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `if`     | evals predicate, and evals only one of the expressions depending on the result | (if <predicate> <if-true> <if-false>)          |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `cond`   | evaluates the clauses one by one, in the first clause that succeeds,           | (cond (<clause_1> ... <clause_n>))             |
-|          | the corresponding expression is evaluated and returned.                        | where clause_x = (<predicate_x> <expression_x> |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `data`   | a data type definition                                                         | (data <typeName> <type expression>)            |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `type`   | type alias                                                                     | (type <typeName> <type expression>)            |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `and`    | short-circuit `and` (also known as conditional and)                            | (and <expression_1> <expression_2>)            |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `or`     | short-circuit `or` (also known as conditional or)                              | (or <expression_1> <expression_2>)             |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `lambda` | a lambda abstraction (can also be written with the unicode `λ`                 | (lambda (<arguments>) <body>)                  |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `let`    | local bindings                                                                 | (let <var name> <expression>)                  |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
-| `define` | top level definition of a function or variable                                 | (define <var name> <expression>) or            |
-|          |                                                                                | (define (<function name> <args>) <expression>) |
-|----------+--------------------------------------------------------------------------------+------------------------------------------------|
+\clearpage
+**** *Special Forms*
+#+ATTR_LATEX: :environment tabular :align  | p{0.08\textwidth} | p{0.30\textwidth} | p{0.50\textwidth} |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| *Name*   | *Description*                                                                  | *Grammar*                                         |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =if=     | evals predicate, and evals only one of the expressions depending on the result | =(if <predicate> <if-true> <if-false>)=           |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =cond=   | evaluates the clauses one by one, in the first clause that succeeds,           | =(cond (<clause_1> ... <clause_n>) <body>)=       |
+|          | the corresponding expression is evaluated and returned.                        | where clause_x = =(<predicate_x> <expression_x>)= |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =data=   | a data type definition                                                         | =(data <typeName> <type expression>)=             |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =type=   | type alias                                                                     | =(type <typeName> <type expression>)=             |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =and=    | short-circuit =and= (also known as conditional and)                            | =(and <expression_1> <expression_2>)=             |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =or=     | short-circuit =or= (also known as conditional or)                              | =(or <expression_1> <expression_2>)=              |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =lambda= | a lambda abstraction (can also be written with the unicode \lambda             | =(lambda (<arguments>) <body>)=                   |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =let=    | local bindings                                                                 | =(let <var name> <expression>)=                   |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
+| =define= | top level definition of a function or variable                                 | =(define <var name> <expression>)=                |
+|          |                                                                                | or                                                |
+|          |                                                                                | =(define (<function name> <args>) <expression>)=  |
+|----------+--------------------------------------------------------------------------------+---------------------------------------------------|
 
-***** Extensions
-
-| `defmacro` |   |   |
-|------------+---+---|
-| `class`    |   |   |
-|------------+---+---|
-| `instance` |   |   |
-|------------+---+---|
-|            |   |   |
-|------------+---+---|
-
-
+***** *Extensions*
+#+ATTR_LATEX: :environment tabular :align  | p{0.15\textwidth} |
+|------------|
+| `defmacro` |
+|------------|
+| `class`    |
+|------------|
+| `instance` |
+|------------|
 
 *** Data Types
+**** *Type System*
 
-**** Type System
+Types include /type values/ and /type variables/. /Type values/ are *monomorphic* while 
+/type variables/ are *polymorphic*. Neither of these are first class. A /type value/, 
+or just called *type*, can be understood as a set of possible values. /Type variables/ can be 
+understood as a set of any type. We can view type variables as generics in other languages. 
+/Type values/ include =Int= or =Int -> Int=. Polymorphic types include the function =head= which 
+is of type =List a -> a=. Therefore this function is defined =forAll a= types.\\
 
-The field of types include type values and type variables. Type values are monomorphic where as type variables are polymorphic. Neither of these are first class.
-A type value, or just called “type”, can be understood as a set of possible values. Type variables can be understood as a set of any type. We can view type variables as generics in other languages.
-Type values include Int or Int -> Int. Polymorphic types include the function head which type is List a -> a. Therefore this functions is defined forAll a types.
+The primitive types are: =Integer=, =Float=, =Character=.
+\clearpage
 
-The primitive types are: Integer, Float, Character.
+**** *On Types*
 
-**** On Types
+A sum type is the union of different constructors for the same type, for example:
 
-A sum type is the union different constructors for the same type, for example:
-```
+#+BEGIN_SRC
 (data Bool {True | False})
-```
-On the contrary, product types can be understood as a tuple of any two types (their cartesian product), the types can be different, for example:
-`(data Point (Pt Int Int))`
+#+END_SRC
 
-Product Types are like having some "type arguments" to a data constructor, while sum types are different constructors.
+On the contrary, product types can be understood as a tuple of any two types (their cartesian product),
+the types can be different, for example:
 
-an example of combining both of these types:
+#+BEGIN_SRC
+(data Point (Pt Int Int))
+#+END_SRC
 
-```
+Product Types are like giving some "type arguments" to a data constructor, while sum types are 
+different constructors. An example of combining both of these types:
+
+#+BEGIN_SRC
 (data (Node a))
 (data Tree {(Node (Tree a) (Tree a)) | (Leaf a)})
-```
+#+END_SRC
 
+In this case, the =Tree= can be either a =Tree= with two branches, or an empty =Tree=. This case is
+also a good example of a /Recursive Type/.\\
 
-In this case, the Tree can be either a Tree with two branches, or an empty Tree. This case is also a good example of a Recursive Type.
+This can also be written in infix notation:
 
-Written in infix notation:
-
-```
+#+BEGIN_SRC
 (data Tree {{(Tree a) Node (Tree a)} | (Leaf a)})
-```
+#+END_SRC
   
 
 ** Language and OS used for development
@@ -316,33 +332,37 @@ Axo is written in Haskell, and developed on MacOS and Debian linux.
 
 ** Bibliography
 
-https://www.haskell.org
-https://www.haskell.org/tutorial/goodies.html
-https://docs.racket-lang.org/hackett/index.html
-http://tunes.org/overview.html
-https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours/Towards_a_Standard_Library
-http://dev.stephendiehl.com/fun/006_hindley_milner.html#types
+- https://www.haskell.org
+- https://www.haskell.org/tutorial/goodies.html
+- https://docs.racket-lang.org/hackett/index.html
+- http://tunes.org/overview.html
+- https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours/Towards_a_Standard_Library
+- http://dev.stephendiehl.com/fun/006_hindley_milner.html#types
+
+\clearpage
 
 ** Features we would like to have  
 
 *** Type Classes
-
-A possible extension to the type system are type classes, which are a constraint over a polymorphic type, that forces a type to be an instance of that class. This means that it implements a specific associated function.
-We can think of classes as interfaces in other languages. Examples include: Num, Show, Read, Ord and Eq.
+A possible extension to the type system are type classes, which are a constraint over a polymorphic 
+type that forces a type to be an instance of that class. This means that it implements a specific
+associated function.  We can think of classes as interfaces in other languages. 
+Examples include: =Num=, =Show=, =Read=, =Ord= and =Eq=.
 
 *** Meta-programming
+- Eval time
+- Compilation time
+- *Development time*
 
-eval time
-compilation time
-*development time*
-
-We think that compilers, programming languages and tools are not always designed with ergonomics in mind.
-There is a special focus on formality, yet as an example error reporting is ad-hoc.
-The users of programming languages (the programmers) are given text-focused tools only to develop, mantain and refactor code.
-There is no intrinsic reason this should be the case.
-Our main objective is, to provide meta-programming tools to the programmer.
+We think that compilers, programming languages and tools are not
+always designed with "ergonomics" in mind.  There is a special focus on
+formality, yet, for example, error reporting tends to be ad-hoc.  The users of
+programming languages (the programmers) are given text-focused tools
+only to develop, mantain and refactor code.  There is no intrinsic
+reason this should be the case.  Our main objective is, to provide
+meta-programming tools to the programmer.\\
 
 Why is meta-programming feared? Our hypothesis is that its unpredicability makes it unfit for
 a program while it's running, and to a lesser extent, during compilation (just ask a programmer
-if they use macros in their own programs). Now there are exceptions to this phenomenon 
-such as hygienic macros in lisps, or ruby object system.
+if they use macros in their own programs). There are, however, exceptions to this phenomenon:
+hygienic macros in Lisp dialects, or the Ruby object system.
