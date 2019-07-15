@@ -1,30 +1,26 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Compiler where
 
-import Data.List(intercalate)
-import qualified Data.Set as S
+import           Data.List            (intercalate)
+import qualified Data.Set             as S
 
-import Control.Monad.Except
-import Control.Monad.State
+import           Control.Monad.Except
+import           Control.Monad.State
 
-import Axo.PrettyPrinter (prettyText, Pretty)
-import Axo.Parser (parseProgram, parseExpr)
-import Axo.ToGraph (showGraph, toGraph, ToGraph)
-import Axo.ParseTree (Program(..), CleanProgram(..), CleanExp)
-import Axo.Desugar (desugar)
-import qualified Axo.AST as AST (Program(..), Expr, Type)
-import Axo.ToAST (toAST)
-import Axo.Check
-       ( TypeEnv
-       , checkTop
-       , checkProgram
-       , emptyTypeEnv
-       , typeErrorPretty
-       )
-import Axo.Match (matchProgram, matchTop)
+import qualified Axo.AST              as AST (Expr, Program (..), Type)
+import           Axo.Check            (TypeEnv, checkProgram, checkTop,
+                                       emptyTypeEnv, typeErrorPretty)
+import           Axo.Desugar          (desugar)
+import           Axo.Match            (matchProgram, matchTop)
+import           Axo.Parser           (parseExpr, parseProgram)
+import           Axo.ParseTree        (CleanExp, CleanProgram (..),
+                                       Program (..))
+import           Axo.PrettyPrinter    (Pretty, prettyText)
+import           Axo.ToAST            (toAST)
+import           Axo.ToGraph          (ToGraph, showGraph, toGraph)
 
-import Flags
+import           Flags
 
 data Phase
   = PAst AST.Program
@@ -108,9 +104,9 @@ loadModule s = do
   phase <- choosePhase
   case phase of
     Just p -> case p of
-                (PAst x) -> output x
+                (PAst x)     -> output x
                 (PDesugar x) -> output x
-                (PSt x) -> output x
+                (PSt x)      -> output x
     Nothing -> throwError "Compiler: nothing to output"
   return a'
   where output x = do
@@ -237,4 +233,4 @@ choosePhase = do
            (True,_,_) -> PAst <$> a
            (_,True,_) -> PDesugar <$> d
            (_,_,True) -> PSt <$> s
-           _ -> PAst <$> a -- by default, return ast
+           _          -> PAst <$> a -- by default, return ast

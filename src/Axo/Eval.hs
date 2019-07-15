@@ -1,12 +1,10 @@
-
 module Axo.Eval where
 
-import Axo.AST
-import qualified Data.Map as Map
-import qualified Data.Set as Set
-import Data.List
-import Control.Monad.State.Strict
-
+import           Axo.AST
+import           Control.Monad.State.Strict
+import           Data.List
+import qualified Data.Map                   as Map
+import qualified Data.Set                   as Set
 
 data Value
   = VInt Int
@@ -156,7 +154,7 @@ evalIf cond eT eF = do
   case res of
     (VADT "True" [])  -> eval eT
     (VADT "False" []) -> eval eF
-    _ -> error "condition in if is not a bool"
+    _                 -> error "condition in if is not a bool"
 
 evalApp :: Expr -> [Expr] -> Evaluator Value
 evalApp e1 es = do
@@ -176,11 +174,13 @@ evalApp e1 es = do
 
 
 evalPrim :: String -> [Expr] -> Evaluator Value
-evalPrim name [a,b] = let f = getPrim name in
-  do
-    a' <- eval a
-    b' <- eval b
-    return $ f a' b'
+evalPrim name [a,b] = case getPrim name of
+  Just f ->
+    do
+      a' <- eval a
+      b' <- eval b
+      return $ f a' b'
+  Nothing -> noFunction name
 evalPrim f args = do
   argvals <- mapM eval args
   getPrimIO f argvals
@@ -190,9 +190,8 @@ noFunction name = error $ "function "++ name ++ " not found"
 getPrimIO :: String -> [Value] -> Evaluator Value
 getPrimIO name = maybe (noFunction name) id $ lookup name primIO
 
-getPrim :: String -> BinOp
-getPrim name = maybe (noFunction name) id primitiveFuncs
-  where primitiveFuncs = lookup name (primIntOps ++ primFloatOps ++ primComps)
+getPrim :: String -> Maybe BinOp
+getPrim name = lookup name (primIntOps ++ primFloatOps ++ primComps)
 
 
 applyVFloat :: (Float -> Float -> Float) -> BinOp
@@ -249,7 +248,7 @@ peq a b  = boolADT $ eq a b
 pne a b  = boolADT $ ne a b
 
 plte a b = boolADT $ lte a b
-plt a b  = boolADT $ (lte a b) && (not $ eq a b) 
+plt a b  = boolADT $ (lte a b) && (not $ eq a b)
 
 pgte a b = boolADT $ gte a b
 pgt a b  = boolADT $ gt a b
@@ -275,3 +274,24 @@ primFloatOps = [ ("+.", applyVFloat (+) )
                , ("/.", applyVFloat (/) )
                , ("*.", applyVFloat (*) )
                ]
+
+
+
+primEnv = Map.fromList
+  [ ("==" , primClosure "==")
+  , ("!=" , primClosure "!=")
+  , ("<=" , primClosure "<=")
+  , ("<"  , primClosure "<")
+  , (">=" , primClosure ">=")
+  , (">"  , primClosure ">")
+  , ("+"  , primClosure "+")
+  , ("-"  , primClosure "-")
+  , ("/"  , primClosure "/")
+  , ("*"  , primClosure "*")
+  , ("+." , primClosure "+.")
+  , ("-." , primClosure "-.")
+  , ("/." , primClosure "/.")
+  , ("*." , primClosure "*.")
+  ]
+  where primClosure name = VClosure ["#x","#y"] (Prim name [Var "#x", Var "#y"]) emptyEnv
+
